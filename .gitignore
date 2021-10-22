@@ -2,9 +2,6 @@
 .Rhistory
 .Rapp.history
 
-# Session Data files
-.RData
-
 # User-specific files
 .Ruserdata
 
@@ -43,6 +40,3 @@ docs/
 
 # translation temp files
 po/*~
-
-#data directory
-/data
