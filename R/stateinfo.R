@@ -1,0 +1,49 @@
+#' @name stateinfo
+#' @docType data
+#' @title data.table of state abbreviations, names (50+DC+PR)
+#'
+#' stateinfo <- data.frame(
+#'   ST = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT",
+#'          "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY",
+#'          "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE",
+#'          "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR",
+#'          "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA",
+#'          "WV", "WI", "WY",
+#'          # "AS", "GU", "MP",
+#'          # "UM", "VI",
+#'          # "US",
+#'          "PR"
+#'   ),
+#'   statename = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
+#'                 "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii",
+#'                 "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+#'                 "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
+#'                 "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska",
+#'                 "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York",
+#'                 "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
+#'                 "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+#'                 "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
+#'                 "West Virginia", "Wisconsin", "Wyoming",
+#'                 # "American Samoa", "Guam", "Northern Mariana Islands",
+#'                 # "U.S. Minor Outlying Islands", "U.S. Virgin Islands",
+#'                 # "United States",
+#'                 "Puerto Rico"
+#'   ),
+#'   ftpname = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
+#'               "Delaware", "DistrictOfColumbia", "Florida", "Georgia", "Hawaii",
+#'               "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+#'               "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
+#'               "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska",
+#'               "Nevada", "NewHampshire", "NewJersey", "NewMexico", "NewYork",
+#'               "NorthCarolina", "NorthDakota", "Ohio", "Oklahoma", "Oregon",
+#'               "Pennsylvania", "RhodeIsland", "SouthCarolina", "SouthDakota",
+#'               "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
+#'               "WestVirginia", "Wisconsin", "Wyoming",
+#'               # NA, NA, NA,
+#'               # NA, NA,
+#'               # "UnitedStates",
+#'               "PuertoRico"
+#'   ),
+#'   stringsAsFactors = FALSE
+#' )
+NULL
