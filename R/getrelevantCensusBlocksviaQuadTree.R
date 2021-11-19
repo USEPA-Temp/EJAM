@@ -33,36 +33,16 @@ getrelevantCensusBlocksviaQuadTree <-          function(facilities,cutoff,maxcut
 
   truedistance <- computeActualDistancefromSurfacedistance(cutoff)   # simply 7918*sin(cutoff/7918)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-  # main reason for using foreach::foreach() is that it supports parallel execution,
+    # main reason for using foreach::foreach() is that it supports parallel execution,
   # that is, it can execute those repeated operations on multiple processors/cores on your computer
   # (and there are other advantages as well)
 
-
-
-
-
-
-
-
-
-
+    localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
 
   #### LOOP OVER THE FACILITIES STARTS HERE ####
 
   # parref <- foreach::foreach(i=1:nRowsDf, .export = c("quaddata"), .packages = c("SearchTrees","data.table","pdist")) %do% {
+result <- data.frame()
 for (i in 1:nRowsDf) {
     coords <- facilities[i, c('FAC_X', 'FAC_Z')]
     x_low <- coords[,'FAC_X']-truedistance;
@@ -77,9 +57,7 @@ for (i in 1:nRowsDf) {
 
     if ((i %% 100)==0) {print(paste("Cells currently processing: ",i," of ",nRowsDf) ) }
 
-    vec <- SearchTrees::rectLookup(blockquadtree,c(x_low,z_low),c(x_hi,z_hi)) # blockquadtree  here but localtree in clustered version of function
-
-
+    vec <- SearchTrees::rectLookup(localtree,unlist(c(x_low,z_low)),unlist(c(x_hi,z_hi))) # blockquadtree  here but localtree in clustered version of function
 
     tmp <- quaddata[vec,]
     x <- tmp[, c('BLOCK_X','BLOCK_Y','BLOCK_Z')]
@@ -99,7 +77,7 @@ for (i in 1:nRowsDf) {
     # hold your horses, what if there are no blocks and you are supposed to avoid that
     if ( avoidorphans && (nrow(tmp))==0 ){
       #search neighbors, allow for multiple at equal distance
-      vec <- SearchTrees::knnLookup(blockquadtree,c(coords[ , 'FAC_X']),c(coords[ , 'FAC_Z']), k=10)   # blockquadtree  here but localtree in clustered version of function
+      vec <- SearchTrees::knnLookup(localtree,unlist(c(coords[ , 'FAC_X'])),unlist(c(coords[ , 'FAC_Z'])), k=10)   # blockquadtree  here but localtree in clustered version of function
       # vec <- SearchTrees::knnLookup(blockquadtree,c(coords[ , FAC_X]),c(coords[,FAC_Z]),k=10)   # blockquadtree  here but localtree in clustered version of function
       tmp <- quaddata[vec[1,], ]
 
@@ -118,21 +96,21 @@ for (i in 1:nRowsDf) {
       truemaxdistance <- computeActualDistancefromSurfacedistance(maxcutoff)
       tmp <- tmp[Distance<=truemaxdistance, c('BLOCKID','Distance','ID')]
       # tmp <- tmp[Distance<=truemaxdistance, .(BLOCKID,Distance,ID)]
-      partial <- tmp
+      result <- rbind(result,tmp)
     } else {
-      partial <- tmp
+      result <- rbind(result,tmp)
     }
-    return(partial)
+#    return(partial)
   }
 
-  bound <- do.call('rbind', parref)
+#  bound <- do.call('rbind', parref)
 
-  print(paste("Total Rowcount: ", nrow(bound)) )
+  print(paste("Total Rowcount: ", nrow(result)) )
   if ( uniqueonly) {
-    data.table::setkey(bound, "BLOCKID", "Distance", "ID")
-    bound <- unique(bound, by=c("BLOCKID"))
+    data.table::setkey(result, "BLOCKID", "Distance", "ID")
+    result <- unique(result, by=c("BLOCKID"))
   }
-  print(paste("Final Rowcount: ", nrow(bound)) )
+  print(paste("Final Rowcount: ", nrow(result)) )
 
-  return(bound)
+  return(result)
 }

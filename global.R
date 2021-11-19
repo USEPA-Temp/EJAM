@@ -31,6 +31,7 @@ library(sp) # https://cran.r-project.org/web/packages/sp/vignettes/over.pdf
 library(SearchTrees)
 library(data.table)
 library(pdist)
+library(blockdata)
 
 # library(data.table)  # faster than data.frame
 # library(SearchTrees) # efficient storage of block points info and selection of those within a certain distance
@@ -42,7 +43,7 @@ library(pdist)
 ############ PARAMETERS SPECIFIC TO USER OR SERVER ############
 
 # these probably should get passed as user-specified parameters to functions with default values, rather than putting them in a script
-CountCPU <- 8
+CountCPU <- 1
 indexgridsize <- 10  # need to confirm if and how this grid is actually used
 translate_fieldnames <- TRUE # may depend on dataset - this is about whether to rename the columns to friendlier variable names in init.getdata.R
 
@@ -75,8 +76,8 @@ crd <- function(x){
 # As Calculated from the full latest dataset:
 # This is a close enough approximation (see examples below) of more careful method where povknownratio is denominator for pctlowinc:
 
-National_Demographic_Index <- (weighted.mean(bufferfast::blockgroupstats2020$pctmin, bufferfast::blockgroupstats2020$pop, na.rm = TRUE) +
-                                 weighted.mean(bufferfast::blockgroupstats2020$pctlowinc, bufferfast::blockgroupstats2020$pop, na.rm = TRUE) ) / 2
+National_Demographic_Index <- (weighted.mean(bufferfast::blockgroupstats$pctmin, bufferfast::blockgroupstats$pop, na.rm = TRUE) +
+                                 weighted.mean(bufferfast::blockgroupstats$pctlowinc, bufferfast::blockgroupstats$pop, na.rm = TRUE) ) / 2
 
 # cat(
 #   '\n CALCULATED DEMOG US INDEX AVG: \n National_Demographic_Index <- usastats[usastats$PCTILE == \'mean\',

@@ -16,6 +16,7 @@
 getrelevantCensusBlocksviaQuadTree_Clustered <-function(facilities,cutoff,maxcutoff,uniqueonly,avoidorphans,CountCPU=1) {
   #pass in a list of uniques and the surface cutoff distance
 
+  print("in custom one")
   #compute and add grid info
   earthRadius_miles <- 3959 # in case it is not already in global envt
   facilities[,"LAT_RAD"] <- facilities$LAT * pi / 180
@@ -35,13 +36,14 @@ getrelevantCensusBlocksviaQuadTree_Clustered <-function(facilities,cutoff,maxcut
 
   #set up cluster, splitting up the facilities among the available CPUs
   cpuids <- 1:CountCPU
-  facilities[,"CPUAFFINITY"] <- cpuids
+  facilities[,"CPUAFFINITY"] <- rep_len(cpuids, length.out=nrow(facilities))
   percpufacilities<- vector('list', CountCPU)
   for(i in 1:CountCPU)  ## for each CPU
   {
     percpufacilities[[i]] <- subset(facilities, CPUAFFINITY==i)
   }
 
+  localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
   # parallel::makePSOCKcluster is an enhanced version of snow::makeSOCKcluster in package snow. It runs Rscript on the specified host(s) to set up a worker process which listens on a socket for expressions to evaluate, and returns the results (as serialized objects).
   cl <- parallel::makeCluster(CountCPU)
   doSNOW::registerDoSNOW(cl)
@@ -50,10 +52,10 @@ getrelevantCensusBlocksviaQuadTree_Clustered <-function(facilities,cutoff,maxcut
   # that is, it can execute those repeated operations on multiple processors/cores on your computer (and there are other advantages as well)
   cpuIndex <- 1 ; FAC_X<-0; FAC_Z<-0 # this just stops the warning about undefined variable since IDE does not understand it being defined in foreach()
   #### LOOP OVER THE CPUs ##############################################################################################
-  parref <- foreach::foreach(cpuIndex=1:CountCPU, .export = c("quaddata","computeActualDistancefromSurfacedistance","earthRadius_miles","crd"), .packages = c("SearchTrees","data.table","pdist")) %dopar% {
+  parref <- foreach::foreach(cpuIndex=1:CountCPU, .export = c("computeActualDistancefromSurfacedistance","earthRadius_miles","crd"), .packages = c("SearchTrees","data.table","pdist")) %dopar% {
 
     #2 seconds overhead to create the quad tree
-    localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
+
     facilities2use <- percpufacilities[[cpuIndex]]
 
     # allocate result list
@@ -128,6 +130,6 @@ getrelevantCensusBlocksviaQuadTree_Clustered <-function(facilities,cutoff,maxcut
   }
   print(paste("Final Rowcount: ",nrow(bound)) )
   # is this from parallel or snow package?
-  stopCluster(cl)
+  parallel::stopCluster(cl)
   return(bound)
 }
