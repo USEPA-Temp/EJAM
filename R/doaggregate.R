@@ -50,7 +50,8 @@ doaggregate <- function(facilities, facilityblocks){
   # Also, as written, it assumes blockdata is in global environment already.
   # blockdata for Census 2010 was 335 MB as a .rdata file.
 
-
+  # filter out any rows with missing values
+  facilities <- facilities[!is.na(facilities$LONG) & !is.na(facilities$LAT),]
 
   ########### Get blockdata for the nearby blocks as listed in facilityblocks ###########
 
@@ -60,7 +61,7 @@ doaggregate <- function(facilities, facilityblocks){
   extendedfacilityblocks <- merge(facilityblocks, bdata)
 
   ########### Get blockgroupstats (envt or demog indicators) for the nearby locks  ###########
-
+  blockgroupstats <- as.data.table(blockgroupstats)
   data.table::setkey(extendedfacilityblocks, "BLOCKGROUPFIPS")
   data.table::setkey(blockgroupstats, "BLOCKGROUPFIPS")
   extendedfacilityblocks_ext <- merge(extendedfacilityblocks, blockgroupstats)
@@ -121,7 +122,7 @@ doaggregate <- function(facilities, facilityblocks){
 
   #do preprocessing here, field ratios, etc, these may be needed in later steps
   # ******* this should not be hardcoded for specific columns, indicators:   ****************
-  pctlowinc    <- sum_pctlowinc(extendedfacilityblocks_ext)
+  pctlowinc <- sum_pctlowinc(extendedfacilityblocks_ext)
   pctlangugage <- sum_pctlanguage(extendedfacilityblocks_ext)
 
   #do direct sums

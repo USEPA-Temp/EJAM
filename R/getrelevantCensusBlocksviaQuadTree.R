@@ -13,9 +13,10 @@
 #' @seealso \link{getrelevantCensusBlocksviaQuadTree_Clustered}  \link{computeActualDistancefromSurfacedistance}
 #' @export
 #'
-getrelevantCensusBlocksviaQuadTree <-          function(facilities,cutoff,maxcutoff,uniqueonly,avoidorphans) {
+getrelevantCensusBlocksviaQuadTree <- function(facilities,cutoff,maxcutoff,uniqueonly,avoidorphans) {
   #pass in a list of uniques and the surface cutoff distance
-
+  #filter na values
+  facilities <- facilities[!is.na(facilities$LAT) & !is.na(facilities$LONG), ]
   #compute and add grid info
   earthRadius_miles <- 3959 # in case it is not already in global envt
   facilities[,"LAT_RAD"] <- facilities$LAT * pi / 180

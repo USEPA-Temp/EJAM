@@ -17,11 +17,12 @@ if (1 ==0) {
 # includes library(bufferfast) which provides datasets like blockdata, blockgroupstats, facilities, etc.
 
 source('global.R')
-
+source("R/getRelevantCensusBlocksviaQuadTree.R")
+source("R/getRelevantCensusBlocksviaQuadTree_Clustered.R")
 # specify random test points (sites) ######
 
 #dataLocDT <- points100example %>% head(1)# data in this package
-  dataLocDT <- points1000example
+dataLocDT <- points1000example
 dataLocDT[, ID := .I]
 
 facilities <- dataLocDT
@@ -62,17 +63,17 @@ system.time(
 
 
 system.time(
-  
+
   ej_api_results <- bufferapi(dataLocDT$LONG, dataLocDT$LAT, radius = 1)
-  
-  
+
+
 )
 
 all_ej_api_results <- ej_api_results %>%
   map_dfr(~ .)
 
 
-results <- results %>% 
+results <- results %>%
   left_join(blockdata::blockdata, by = "BLOCKID")
 
 

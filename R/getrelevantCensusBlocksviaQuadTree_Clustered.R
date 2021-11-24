@@ -15,8 +15,8 @@
 #'
 getrelevantCensusBlocksviaQuadTree_Clustered <-function(facilities,cutoff,maxcutoff,uniqueonly,avoidorphans,CountCPU=1) {
   #pass in a list of uniques and the surface cutoff distance
-
-  print("in custom one")
+  #filter na values
+facilities <- facilities[!is.na(facilities$LAT) & !is.na(facilities$LONG), ]
   #compute and add grid info
   earthRadius_miles <- 3959 # in case it is not already in global envt
   facilities[,"LAT_RAD"] <- facilities$LAT * pi / 180
@@ -45,15 +45,17 @@ getrelevantCensusBlocksviaQuadTree_Clustered <-function(facilities,cutoff,maxcut
 
   localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
   # parallel::makePSOCKcluster is an enhanced version of snow::makeSOCKcluster in package snow. It runs Rscript on the specified host(s) to set up a worker process which listens on a socket for expressions to evaluate, and returns the results (as serialized objects).
-  cl <- parallel::makeCluster(CountCPU)
+  cl <- parallel::makeCluster(CountCPU, outfile="")
   doSNOW::registerDoSNOW(cl)
+  #foreach::registerDoSEQ()
 
   # main reason for using foreach::foreach() is that it supports parallel execution,
   # that is, it can execute those repeated operations on multiple processors/cores on your computer (and there are other advantages as well)
   cpuIndex <- 1 ; FAC_X<-0; FAC_Z<-0 # this just stops the warning about undefined variable since IDE does not understand it being defined in foreach()
   #### LOOP OVER THE CPUs ##############################################################################################
-  parref <- foreach::foreach(cpuIndex=1:CountCPU, .export = c("computeActualDistancefromSurfacedistance","earthRadius_miles","crd"), .packages = c("SearchTrees","data.table","pdist")) %dopar% {
+  parref <- foreach::foreach(cpuIndex=1:CountCPU, .export = c("computeActualDistancefromSurfacedistance","earthRadius_miles","crd","quaddata"), .packages = c("SearchTrees","data.table","pdist"), .errorhandling = 'pass', .verbose = TRUE) %dopar% {
 
+    print(.packages())
     #2 seconds overhead to create the quad tree
 
     facilities2use <- percpufacilities[[cpuIndex]]
@@ -78,27 +80,53 @@ getrelevantCensusBlocksviaQuadTree_Clustered <-function(facilities,cutoff,maxcut
       z_hi  <-  coords[,FAC_Z]+truedistance
 
       # if ((i %% 100)==0) {print(paste("Cells currently processing: ",i," of ",nRowsDf) ) }
+      print("did we even do anything?")
+      tryCatch(
+        expr = {
+          print('trying')
+          #vec <- SearchTrees::rectLookup(localtree, c(x_low, z_low), c(x_hi, z_hi))
+        },
+        error = function(e) {
+          print("yay")
+          print(e)
+          # (Optional)
+          # Do this if an error is caught...
+        },
+        warning = function(w) {
+          print("don't understand")
+          print(w)
+          # (Optional)
+          # Do this if an warning is caught...
+        },
+        finally = {
+          print('WTF')
+          # (Optional)
+          # Do this at the end before quitting the tryCatch structure...
+        }
+      )
 
-      vec <- SearchTrees::rectLookup(localtree,c(x_low,z_low),c(x_hi,z_hi))
 
 
 
-      tmp <- quaddata[vec,]
-      x <- tmp[, .(BLOCK_X,BLOCK_Y,BLOCK_Z)]
-      y <- facilities2use[i, .(FAC_X,FAC_Y,FAC_Z)]
-      distances <- as.matrix(pdist(x,y))
+      # tmp <- quaddata[vec,]
+      # x <- tmp[, .(BLOCK_X,BLOCK_Y,BLOCK_Z)]
+      # y <- facilities2use[i, .(FAC_X,FAC_Y,FAC_Z)]
+      # distances <- as.matrix(pdist(x,y))
 
-      #clean up fields
-      tmp[,Distance := distances[,c(1)]]
-      tmp[,ID := facilities2use[i, .(ID)]]
+      # #clean up fields
+      # tmp[,Distance := distances[,c(1)]]
+      # tmp[,ID := facilities2use[i, .(ID)]]
 
-      #filter actual distance
-      tmp <- tmp[Distance <= truedistance, .(BLOCKID,Distance,ID)]
+      # #filter actual distance
+      # tmp <- tmp[Distance <= truedistance, .(BLOCKID,Distance,ID)]
 
       #hold your horses, what if there are no blocks and you are supposed to avoid that
-      if ( avoidorphans && (nrow(tmp))==0 ) {
+      # && (nrow(tmp))==0
+      if ( avoidorphans) {
         #search neighbors, allow for multiple at equal distance
+        print("inbefore knn")
         vec <- SearchTrees::knnLookup(localtree,c(coords[,FAC_X]),c(coords[,FAC_Z]),k=10)
+        print("did we knn? ")
         tmp <- quaddata[vec[1,],]
 
         x <-tmp[, .(BLOCK_X,BLOCK_Y,BLOCK_Z)]
