@@ -5,7 +5,7 @@ if (1 ==0) {
 
 # See details in help for ?bufferfast
 
-# and note that right now proxistat::bufferapi() is in that package not here
+# and note that right now proxistat::ejscreenapi() is in that package not here
 
 # and see  census2020download::blocks2020  for newer census data on blocks
 
@@ -64,7 +64,7 @@ system.time(
 
 system.time(
 
-  ej_api_results <- bufferapi(dataLocDT$LONG, dataLocDT$LAT, radius = 1)
+  ej_api_results <- ejscreenapi(dataLocDT$LONG, dataLocDT$LAT, radius = 1)
 
 
 )
