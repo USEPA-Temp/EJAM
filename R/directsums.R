@@ -31,6 +31,6 @@ directsums <- function(data, fieldnames='POP100', scaling=1) {
     listindex <- listindex + 1
   }
   # merge together
-  result <- funprog::Reduce(merge, directsums_subres)
+  result <- Reduce(merge, directsums_subres)
   return(result)
 }

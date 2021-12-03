@@ -13,7 +13,7 @@
 #' @seealso \link{getrelevantCensusBlocksviaQuadTree_Clustered}  \link{computeActualDistancefromSurfacedistance}
 #' @export
 #'
-getrelevantCensusBlocksviaQuadTree <- function(facilities,cutoff,maxcutoff,uniqueonly,avoidorphans) {
+getrelevantCensusBlocksviaQuadTree <- function(facilities,cutoff,maxcutoff,uniqueonly,avoidorphans, tree) {
   #pass in a list of uniques and the surface cutoff distance
   #filter na values
   facilities <- facilities[!is.na(facilities$LAT) & !is.na(facilities$LONG), ]
@@ -38,13 +38,14 @@ getrelevantCensusBlocksviaQuadTree <- function(facilities,cutoff,maxcutoff,uniqu
   # that is, it can execute those repeated operations on multiple processors/cores on your computer
   # (and there are other advantages as well)
 
-    localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
+
 
   #### LOOP OVER THE FACILITIES STARTS HERE ####
 
   # parref <- foreach::foreach(i=1:nRowsDf, .export = c("quaddata"), .packages = c("SearchTrees","data.table","pdist")) %do% {
 result <- data.frame()
 for (i in 1:nRowsDf) {
+  # pull these out of the loop
     coords <- facilities[i, c('FAC_X', 'FAC_Z')]
     x_low <- coords[,'FAC_X']-truedistance;
     x_hi  <-  coords[,'FAC_X']+truedistance
@@ -58,7 +59,7 @@ for (i in 1:nRowsDf) {
 
     if ((i %% 100)==0) {print(paste("Cells currently processing: ",i," of ",nRowsDf) ) }
 
-    vec <- SearchTrees::rectLookup(localtree,unlist(c(x_low,z_low)),unlist(c(x_hi,z_hi))) # blockquadtree  here but localtree in clustered version of function
+    vec <- SearchTrees::rectLookup(tree,unlist(c(x_low,z_low)),unlist(c(x_hi,z_hi))) # blockquadtree  here but localtree in clustered version of function
 
     tmp <- quaddata[vec,]
     x <- tmp[, c('BLOCK_X','BLOCK_Y','BLOCK_Z')]
@@ -78,7 +79,7 @@ for (i in 1:nRowsDf) {
     # hold your horses, what if there are no blocks and you are supposed to avoid that
     if ( avoidorphans && (nrow(tmp))==0 ){
       #search neighbors, allow for multiple at equal distance
-      vec <- SearchTrees::knnLookup(localtree,unlist(c(coords[ , 'FAC_X'])),unlist(c(coords[ , 'FAC_Z'])), k=10)   # blockquadtree  here but localtree in clustered version of function
+      vec <- SearchTrees::knnLookup(tree,unlist(c(coords[ , 'FAC_X'])),unlist(c(coords[ , 'FAC_Z'])), k=10)   # blockquadtree  here but localtree in clustered version of function
       # vec <- SearchTrees::knnLookup(blockquadtree,c(coords[ , FAC_X]),c(coords[,FAC_Z]),k=10)   # blockquadtree  here but localtree in clustered version of function
       tmp <- quaddata[vec[1,], ]
 

@@ -206,6 +206,7 @@ doaggregate <- function(facilities, facilityblocks){
   data.table::setkey(result, "ID")
   data.table::setkey(locations, "ID")
 
+  locations <- locations[, ID := as.character(ID)]
   result <- merge(result, locations)
 
   ###################################################
@@ -241,7 +242,8 @@ doaggregate <- function(facilities, facilityblocks){
   #merge facility lat long
   data.table::setkey(facilities, "ID")
   data.table::setkey(result, "ID")
-  result <- merge(facilities, result, all.x = TRUE)
+  facilities <- facilities[, ID := as.character(ID)]
+  result <- merge(facilities, result, by="ID", all.x = TRUE)
 
   return(result)
 }

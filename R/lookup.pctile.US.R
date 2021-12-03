@@ -30,7 +30,8 @@ lookup.pctile.US <- function(data, thisregion = 'USA', geolevel = 'usa', fields2
                       "pctpre1960","traffic.score","resp",
                       #"neuro",
                       "cancer","dpm","o3","pm",
-                      "pctmin","pctlowinc","pctlths",
+                      "pctmin","pctlowinc",
+                      "pctlths",
                       "pctlingiso","pctunder5","pctover64")
   fields2process <- c(
     fields2process,

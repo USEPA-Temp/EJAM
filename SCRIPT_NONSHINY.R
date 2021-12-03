@@ -19,10 +19,11 @@ if (1 ==0) {
 source('global.R')
 source("R/getRelevantCensusBlocksviaQuadTree.R")
 source("R/getRelevantCensusBlocksviaQuadTree_Clustered.R")
+source("R/doaggregate.R")
 # specify random test points (sites) ######
 
 #dataLocDT <- points100example %>% head(1)# data in this package
-dataLocDT <- points1000example
+dataLocDT <- points100example
 dataLocDT[, ID := .I]
 
 facilities <- dataLocDT
@@ -43,6 +44,10 @@ uniqueonly <- TRUE    # TRUE = stats are for dissolved single buffer to avoid do
 
 
 # call function that finds nearby blocks  ####
+localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
+
+
+#getblocks <- compiler::cmpfun(getrelevant....())
 
 system.time(
 
@@ -57,31 +62,12 @@ system.time(
     cutoff = cutoff,
     maxcutoff = maxcuttoff,
     uniqueonly = uniqueonly,
-    avoidorphans = avoidorphans)
+    avoidorphans = avoidorphans,
+    tree = localtree)
 
 )
 
 
-system.time(
-
-  ej_api_results <- bufferapi(dataLocDT$LONG, dataLocDT$LAT, radius = 1)
-
-
-)
-
-all_ej_api_results <- ej_api_results %>%
-  map_dfr(~ .)
-
-
-results <- results %>%
-  left_join(blockdata::blockdata, by = "BLOCKID")
-
-
-ej_pop <- sum(as.numeric(all_ej_api_results$totalPop))
-ej_pop
-
-quadtree_pop <- sum(results$POP100)
-quadtree_pop
 
 
 # call function that aggregates in each buffer  ####
@@ -98,5 +84,20 @@ system.time(
 
 head(dat)
 
+system.time(
+  ej_api_results <- proxistat::ejscreenapi(dataLocDT$LONG, dataLocDT$LAT, radius = 1)
+)
+
+ej_api_results <- ej_api_results %>%
+  dplyr::relocate(
+    c(lon, lat),
+    .before = RAW_E_PM25
+  )
+
+ej_pop <- sum(as.numeric(ej_api_results$totalPop))
+ej_pop
+
+quadtree_pop <- sum(results$POP100)
+quadtree_pop
 
 }
