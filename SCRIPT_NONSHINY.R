@@ -46,15 +46,10 @@ uniqueonly <- TRUE    # TRUE = stats are for dissolved single buffer to avoid do
 # call function that finds nearby blocks  ####
 localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
 
-
-#getblocks <- compiler::cmpfun(getrelevant....())
-
 system.time(
 
-  # ON MAC THIS CRASHES R ENTIRELY - due to lack of support for multithreaded something or other??:
-
-  results <- getrelevantCensusBlocksviaQuadTree(
-#  results <- summarizeForFacilities(
+#  results <- getrelevantCensusBlocksviaQuadTree(
+  results <- summarizeForFacilities(
     # **** as written currently, presumes that other data are in global environment, ****
     # **** especially it uses quaddata ****
 
@@ -70,34 +65,34 @@ system.time(
 
 
 
-# call function that aggregates in each buffer  ####
-
-system.time(
-
-  # **** as written currently, presumes that other data are in global environment, ****
-  # *** this uses blockdata and blockgroupstats ***
-
-  dat <- doaggregate(dataLocDT, results)
-)
-
-# see results ####
-
-head(dat)
-
-system.time(
-  ej_api_results <- proxistat::ejscreenapi(dataLocDT$LONG, dataLocDT$LAT, radius = 1)
-)
-
-ej_api_results <- ej_api_results %>%
-  dplyr::relocate(
-    c(lon, lat),
-    .before = RAW_E_PM25
-  )
-
-ej_pop <- sum(as.numeric(ej_api_results$totalPop))
-ej_pop
-
-quadtree_pop <- sum(results$POP100)
-quadtree_pop
+# # call function that aggregates in each buffer  ####
+# 
+# system.time(
+# 
+#   # **** as written currently, presumes that other data are in global environment, ****
+#   # *** this uses blockdata and blockgroupstats ***
+# 
+#   dat <- doaggregate(dataLocDT, results)
+# )
+# 
+# # see results ####
+# 
+# head(dat)
+# 
+# system.time(
+#   ej_api_results <- proxistat::ejscreenapi(dataLocDT$LONG, dataLocDT$LAT, radius = 1)
+# )
+# 
+# ej_api_results <- ej_api_results %>%
+#   dplyr::relocate(
+#     c(lon, lat),
+#     .before = RAW_E_PM25
+#   )
+# 
+# ej_pop <- sum(as.numeric(ej_api_results$totalPop))
+# ej_pop
+# 
+# quadtree_pop <- sum(results$POP100)
+# quadtree_pop
 
 }
