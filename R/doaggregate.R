@@ -40,7 +40,7 @@
 #'
 #' @param facilities data.table of facility locations
 #' @param facilityblocks data.table of blocks inside buffer around any given facility
-#'
+#' @import data.table
 #' @export
 #'
 doaggregate <- function(facilities, facilityblocks){
@@ -206,7 +206,6 @@ doaggregate <- function(facilities, facilityblocks){
   data.table::setkey(result, "ID")
   data.table::setkey(locations, "ID")
 
-  locations <- locations[, ID := as.character(ID)]
   result <- merge(result, locations)
 
   ###################################################
@@ -242,7 +241,6 @@ doaggregate <- function(facilities, facilityblocks){
   #merge facility lat long
   data.table::setkey(facilities, "ID")
   data.table::setkey(result, "ID")
-  facilities <- facilities[, ID := as.character(ID)]
   result <- merge(facilities, result, by="ID", all.x = TRUE)
 
   return(result)

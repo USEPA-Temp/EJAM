@@ -1,4 +1,5 @@
 
+if(1 == 0) {
 ########################################################### #
 # HOW MANY CENSUS BLOCKS ARE WITHIN 1 OR 3 MILES OF 
 # THE AVERAGE FACILITY IN EPA FRS?
@@ -215,3 +216,4 @@ points(frs1000$lon[1], frs1000$lat[1], col='red')
 # x=bg20
 # x=x[, c(1:9,110:118)]
 
+}

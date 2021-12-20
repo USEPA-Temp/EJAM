@@ -15,11 +15,11 @@ if (1 ==0) {
 # setup parameters, functions ####
 # - get data by loading package and some constants etc.
 # includes library(bufferfast) which provides datasets like blockdata, blockgroupstats, facilities, etc.
-
-source('global.R')
-source("R/getRelevantCensusBlocksviaQuadTree.R")
-source("R/getRelevantCensusBlocksviaQuadTree_Clustered.R")
-source("R/doaggregate.R")
+library(blockdata)
+library(bufferfast)
+  
+CountCPU <- 2
+indexgridsize <- 10  # need to confirm if and how this grid is actually used
 # specify random test points (sites) ######
 
 #dataLocDT <- points100example %>% head(1)# data in this package
@@ -54,7 +54,7 @@ system.time(
   # ON MAC THIS CRASHES R ENTIRELY - due to lack of support for multithreaded something or other??:
 
   results <- getrelevantCensusBlocksviaQuadTree(
-
+#  results <- summarizeForFacilities(
     # **** as written currently, presumes that other data are in global environment, ****
     # **** especially it uses quaddata ****
 

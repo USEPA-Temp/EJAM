@@ -11,7 +11,7 @@ Description: Uses quad trees, data.table, parallel processing - for very fast di
     for each of a number of facilities or sites.
 Requires: data.table, foreach, blockdata, frsdata
 Imports: census2020download, DBI, RMySQL, SearchTrees, doSNOW,
-        sp
+        sp, data.table, pdist
 Depends: R (>= 3.5.0)
 License: MIT
 Encoding: UTF-8

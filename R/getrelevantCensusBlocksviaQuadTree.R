@@ -12,6 +12,8 @@
 #'
 #' @seealso \link{getrelevantCensusBlocksviaQuadTree_Clustered}  \link{computeActualDistancefromSurfacedistance}
 #' @export
+#' @import data.table
+#' @importFrom pdist "pdist"
 #'
 getrelevantCensusBlocksviaQuadTree <- function(facilities,cutoff,maxcutoff,uniqueonly,avoidorphans, tree) {
   #pass in a list of uniques and the surface cutoff distance
@@ -42,70 +44,56 @@ getrelevantCensusBlocksviaQuadTree <- function(facilities,cutoff,maxcutoff,uniqu
 
   #### LOOP OVER THE FACILITIES STARTS HERE ####
 
-  # parref <- foreach::foreach(i=1:nRowsDf, .export = c("quaddata"), .packages = c("SearchTrees","data.table","pdist")) %do% {
+
 result <- data.frame()
 for (i in 1:nRowsDf) {
   # pull these out of the loop
-    coords <- facilities[i, c('FAC_X', 'FAC_Z')]
-    x_low <- coords[,'FAC_X']-truedistance;
-    x_hi  <-  coords[,'FAC_X']+truedistance
-    z_low <- coords[,'FAC_Z']-truedistance;
-    z_hi  <-  coords[,'FAC_Z']+truedistance
-    # coords <- facilities[i, .(FAC_X,FAC_Z)]  # the similar clustered function uses facilities2use not facilities
-    # x_low <- coords[,FAC_X]-truedistance;
-    # x_hi  <-  coords[,FAC_X]+truedistance
-    # z_low <- coords[,FAC_Z]-truedistance;
-    # z_hi  <-  coords[,FAC_Z]+truedistance
+    coords <- facilities[i, .(FAC_X,FAC_Z)]  # the similar clustered function uses facilities2use not facilities
+    x_low <- coords[,FAC_X]-truedistance;
+    x_hi  <-  coords[,FAC_X]+truedistance
+    z_low <- coords[,FAC_Z]-truedistance;
+    z_hi  <-  coords[,FAC_Z]+truedistance
 
     if ((i %% 100)==0) {print(paste("Cells currently processing: ",i," of ",nRowsDf) ) }
 
     vec <- SearchTrees::rectLookup(tree,unlist(c(x_low,z_low)),unlist(c(x_hi,z_hi))) # blockquadtree  here but localtree in clustered version of function
 
     tmp <- quaddata[vec,]
-    x <- tmp[, c('BLOCK_X','BLOCK_Y','BLOCK_Z')]
-    # x <- tmp[, .(BLOCK_X,BLOCK_Y,BLOCK_Z)]
+    x <- tmp[, .(BLOCK_X,BLOCK_Y,BLOCK_Z)]
     y <- facilities[i, c('FAC_X','FAC_Y','FAC_Z')]  # the similar clustered function uses facilities2use not facilities
-    distances <- as.matrix(pdist(x,y))
+    distances <- as.matrix(pdist::pdist(x,y))
 
     #clean up fields
     tmp[ , Distance := distances[,c(1)]]
-    tmp[ , ID := facilities[i, 'ID']]  # the similar clustered function uses facilities2use not facilities
-    # tmp[ , ID := facilities[i, .(ID)]]  # the similar clustered function uses facilities2use not facilities
+    tmp[ , ID := facilities[i, .(ID)]]  # the similar clustered function uses facilities2use not facilities
 
     #filter actual distance
-    tmp <- tmp[Distance <= truedistance, c('BLOCKID', 'Distance', 'ID')]
-    # tmp <- tmp[Distance <= truedistance, .(BLOCKID,Distance,ID)]
+    tmp <- tmp[Distance <= truedistance, .(BLOCKID,Distance,ID)]
 
     # hold your horses, what if there are no blocks and you are supposed to avoid that
     if ( avoidorphans && (nrow(tmp))==0 ){
       #search neighbors, allow for multiple at equal distance
       vec <- SearchTrees::knnLookup(tree,unlist(c(coords[ , 'FAC_X'])),unlist(c(coords[ , 'FAC_Z'])), k=10)   # blockquadtree  here but localtree in clustered version of function
-      # vec <- SearchTrees::knnLookup(blockquadtree,c(coords[ , FAC_X]),c(coords[,FAC_Z]),k=10)   # blockquadtree  here but localtree in clustered version of function
+#      vec <- SearchTrees::knnLookup(blockquadtree,c(coords[ , FAC_X]),c(coords[,FAC_Z]),k=10)   # blockquadtree  here but localtree in clustered version of function
       tmp <- quaddata[vec[1,], ]
 
-      x <- tmp[, c('BLOCK_X','BLOCK_Y','BLOCK_Z')]
-      y <- facilities[i, c('FAC_X','FAC_Y','FAC_Z')]
-      # x <-tmp[, .(BLOCK_X,BLOCK_Y,BLOCK_Z)]
-      # y <-facilities[i, .(FAC_X,FAC_Y,FAC_Z)]
-      distances <- as.matrix(pdist(x,y))
+      x <-tmp[, .(BLOCK_X,BLOCK_Y,BLOCK_Z)]
+      y <-facilities[i, .(FAC_X,FAC_Y,FAC_Z)]
+      distances <- as.matrix(pdist::pdist(x,y))
 
       #clean up fields
       tmp[,Distance := distances[,c(1)]]
-      tmp[ , ID := facilities[i, ('ID')]]
-      # tmp[,ID := facilities[i, .(ID)]]
+      tmp[,ID := facilities[i, .(ID)]]
 
       #filter to max distance
       truemaxdistance <- computeActualDistancefromSurfacedistance(maxcutoff)
-      tmp <- tmp[Distance<=truemaxdistance, c('BLOCKID','Distance','ID')]
-      # tmp <- tmp[Distance<=truemaxdistance, .(BLOCKID,Distance,ID)]
+      tmp <- tmp[Distance<=truemaxdistance, .(BLOCKID,Distance,ID)]
       result <- rbind(result,tmp)
     } else {
       result <- rbind(result,tmp)
     }
-#    return(partial)
   }
 
-#  bound <- do.call('rbind', parref)
 
   print(paste("Total Rowcount: ", nrow(result)) )
   if ( uniqueonly) {

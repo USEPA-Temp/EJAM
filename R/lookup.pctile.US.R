@@ -22,6 +22,7 @@
 #' @return data.table of 100 percentiles and mean (in rows) for each indicator (in columns)
 lookup.pctile.US <- function(data, thisregion = 'USA', geolevel = 'usa', fields2process = NULL, lookupfields = NULL, fields_outputnames = NULL, fields_outputnames_means = NULL, factors = NULL) {
 
+  # geolevel = 'state'; fields2process = NULL; lookupfields = NULL; fields_outputnames = NULL; fields_outputnames_means = NULL; factors = NULL
   # CURRENTLY HARD CODED TO USE THESE SPECIFIC FIELDS - NEEDS TO BE MADE GENERIC
   # COULD work from
 
@@ -146,7 +147,13 @@ lookup.pctile.US <- function(data, thisregion = 'USA', geolevel = 'usa', fields2
   for (field in fields2process) {
     colindex <- which(names(data) == field)
     myvector <- round(factors[[listindex]] * data[[colindex]], 6)
-    us_subres[[listindex]] <-  as.numeric(lookup$PCTILE[ findInterval(myvector, lookup[ , lookupfields[[listindex]]]) ])
+    if(!is.na(myvector)) {
+          us_subres[[listindex]] <-  as.numeric(lookup$PCTILE[ findInterval(myvector, lookup[ , lookupfields[[listindex]]]) ])
+    } else
+    {
+      us_subres[[listindex]] <- NA
+    }
+
     listindex <- listindex + 1
     if ((field == "o3")) {
       #stop("does not compute") # ???
