@@ -13,7 +13,7 @@ datasetNAICS <- function(selectIndustry1, selectIndustry2, cutoff, maxcuttoff=50
   # cutoff=getCutoff()
   # maxcuttoff=getMaxcutoff()
   # get_unique=setUnique()
-  # avoidorphans=doExpandraduis()
+  # avoidorphans=doExpandradius()
 
   # which datasystems are we searching?
   selectNaicsDS1 = input$selectNaicsDS1
