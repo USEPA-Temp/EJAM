@@ -7,8 +7,8 @@
 ######################################################################################################## #
 
 library(shiny)
-library(bufferfast) # This package's functions and data (block points, blockgroup indicators, facility points, NAICS, etc.)
-s_options <- bufferfast::NAICS  # lazy loaded from this package as data, used in ui.R
+library(EJAM) # This package's functions and data (block points, blockgroup indicators, facility points, NAICS, etc.)
+s_options <- EJAM::NAICS  # lazy loaded from this package as data, used in ui.R
 s_dropdown_naics <- c()
 options(shiny.maxRequestSize = 9*1024^2)
 server <- "127.0.0.1"
@@ -25,7 +25,9 @@ server <- "127.0.0.1"
 # Should not load packages using library or require in a package, but specify in DESCRIPTION file.
 # but need to in a Shiny app.
 
-library(bufferfast) # This package's functions and data (block points, blockgroup indicators, facility points, NAICS, etc.)
+pkgs <- list()
+
+library(EJAM) # This package's functions and data (block points, blockgroup indicators, facility points, NAICS, etc.)
 library(foreach) # main reason for using foreach::foreach() is that it supports parallel execution, that is, it can execute those repeated operations on multiple processors/cores on your computer (and there are other advantages as well)
 library(sp) # https://cran.r-project.org/web/packages/sp/vignettes/over.pdf
 library(SearchTrees)
@@ -70,14 +72,14 @@ crd <- function(x){
 #### calculate DEMOGRAPHIC INDEX for US overall, needed later #####
 #
 # As seen in the lookup table:
-# National_Demographic_Index <- bufferfast::usastats[bufferfast::usastats$PCTILE == 'mean', 'VULEOPCT']
+# National_Demographic_Index <- EJAM::usastats[EJAM::usastats$PCTILE == 'mean', 'VULEOPCT']
 # EJSCREEN2019 (ACS2013-2017) value is  0.3588634
 #
 # As Calculated from the full latest dataset:
 # This is a close enough approximation (see examples below) of more careful method where povknownratio is denominator for pctlowinc:
 
-National_Demographic_Index <- (weighted.mean(bufferfast::blockgroupstats$pctmin, bufferfast::blockgroupstats$pop, na.rm = TRUE) +
-                                 weighted.mean(bufferfast::blockgroupstats$pctlowinc, bufferfast::blockgroupstats$pop, na.rm = TRUE) ) / 2
+National_Demographic_Index <- (weighted.mean(EJAM::blockgroupstats$pctmin, EJAM::blockgroupstats$pop, na.rm = TRUE) +
+                                 weighted.mean(EJAM::blockgroupstats$pctlowinc, EJAM::blockgroupstats$pop, na.rm = TRUE) ) / 2
 
 # cat(
 #   '\n CALCULATED DEMOG US INDEX AVG: \n National_Demographic_Index <- usastats[usastats$PCTILE == \'mean\',

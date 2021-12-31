@@ -3,7 +3,7 @@ if (1==0) { # do not want to run the code even if this doc is saved in the R fol
 
   ########################################################################
 
-  # also see proxistat::ejscreenapi
+  # also see batch.summarizer::ejscreenapi
 
 
   ######### quick example of using sf::st_buffer() and mapview #########

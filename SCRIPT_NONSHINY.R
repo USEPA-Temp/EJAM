@@ -3,20 +3,20 @@
 # **** like blockgroupstats, blockdata, quaddata, etc. ****
 if (1 ==0) {
 
-# See details in help for ?bufferfast
+# See details in help for ?EJAM
 
-# and note that right now proxistat::ejscreenapi() is in that package not here
+# and note that right now batch.summarizer::ejscreenapi() is in that package not here
 
-# and see  census2020download::blocks2020  for newer census data on blocks
+# and see  census2020download::blocks2020  for newer census data on blocks but may move to EJAM-Blockdata?
 
 # and facilities_prep may be obsolete or should be done before save that as dataset and build a package.
 
 
 # setup parameters, functions ####
 # - get data by loading package and some constants etc.
-# includes library(bufferfast) which provides datasets like blockdata, blockgroupstats, facilities, etc.
-library(blockdata)
-library(bufferfast)
+# includes library(EJAM) which provides datasets like blockgroupstats, facilities, etc.
+library(blockdata) # may move it to EJAM-
+library(EJAM)
   
 CountCPU <- 2
 indexgridsize <- 10  # need to confirm if and how this grid is actually used
@@ -45,6 +45,8 @@ uniqueonly <- TRUE    # TRUE = stats are for dissolved single buffer to avoid do
 
 # call function that finds nearby blocks  ####
 localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
+# BUILDING THIS localtree TAKES MAYBE 30 SECONDS, AND SHOULD BE DONE BEFOREHAND AND SAVED AS DATA
+# INSTEAD OF ONLY SAVING quaddata
 
 system.time(
 
@@ -80,7 +82,7 @@ system.time(
 # head(dat)
 # 
 # system.time(
-#   ej_api_results <- proxistat::ejscreenapi(dataLocDT$LONG, dataLocDT$LAT, radius = 1)
+#   ej_api_results <- batch.summarizer::ejscreenapi(dataLocDT$LONG, dataLocDT$LAT, radius = 1)
 # )
 # 
 # ej_api_results <- ej_api_results %>%

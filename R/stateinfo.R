@@ -1,7 +1,9 @@
 #' @name stateinfo
 #' @docType data
-#' @title data.table of state abbreviations, names (50+DC+PR)
-#'
+#' @title data.frame of state abbreviations and state names (50+DC+PR)
+#' @description 52 rows and 3 variables: ST is the 2-letter abbreviation, 
+#'   statename is the State name (and ftpname is the name as used on Census FTP site).
+#' @details 
 #' stateinfo <- data.frame(
 #'   ST = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT",
 #'          "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY",
