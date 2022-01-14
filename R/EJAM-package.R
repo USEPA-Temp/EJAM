@@ -1,4 +1,4 @@
-#' bufferfast package
+#' EJAM package
 #'
 #' @md
 #'

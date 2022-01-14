@@ -118,7 +118,7 @@ shinyServer(function(input, output,session) {
 
   #avoidorphans
   # Expand distance for facilities with no census block centroid within selected buffer distance
-  doExpandraduis <- reactive({
+  doExpandradius <- reactive({
     if (input$expandRadius=="no"){
       return(FALSE)
     }
@@ -157,9 +157,9 @@ shinyServer(function(input, output,session) {
     dataLocDT = data.table::as.data.table(dataLocationList())
 
     cutoff = getCutoff() # radius (units?)
-    maxcuttoff = getMaxcutoff()  # max distance to search
-    get_unique = setUnique()     # TRUE = stats are for dissolved single buffer to avoid doublecounting. FALSE = we want to count each person once for each site they are near.
-    avoidorphans = doExpandraduis() # Expand distance searched, when a facility has no census block centroid within selected buffer distance
+    maxcuttoff = getMaxcutoff()  # reactive, max distance to search
+    get_unique = setUnique()     # reactive, TRUE = stats are for dissolved single buffer to avoid doublecounting. FALSE = we want to count each person once for each site they are near.
+    avoidorphans = doExpandradius() # Expand distance searched, when a facility has no census block centroid within selected buffer distance
 
     system.time(res <- getrelevantCensusBlocksviaQuadTree(dataLocDT,cutoff,maxcuttoff,get_unique,avoidorphans))
 
@@ -208,7 +208,7 @@ shinyServer(function(input, output,session) {
     cutoff=getCutoff()
     maxcuttoff=getMaxcutoff()
     get_unique=setUnique()
-    avoidorphans=doExpandraduis()
+    avoidorphans=doExpandradius()
 
     system.time(res <- getrelevantCensusBlocksviaQuadTree(kimsunique,cutoff,maxcuttoff,get_unique,avoidorphans))
 
@@ -231,7 +231,9 @@ shinyServer(function(input, output,session) {
   # is defined here, not easily in separate file because it uses several reactives and facilities? which is in global env
 
   datasetNAICS <- function() {
-
+    # parameters needed:  
+    # input$selectIndustry1, input$selectIndustry2, getCutoff(), getMaxcutoff(), doExpandraduis(), input$selectNaicsDS1, 
+    # 
     sub2 <- data.table::data.table(a = numeric(0), b = character(0))
 
     print(paste("Number of records in empty data table ",nrow(sub2)))
@@ -240,10 +242,10 @@ shinyServer(function(input, output,session) {
       return()
     }
 
-    cutoff=getCutoff()
-    maxcuttoff=getMaxcutoff()
-    get_unique=setUnique()
-    avoidorphans=doExpandraduis()
+    cutoff=getCutoff()  # reactive
+    maxcuttoff=getMaxcutoff()  # reactive, max distance to search
+    get_unique=setUnique() # reactive, TRUE = stats are for dissolved single buffer to avoid doublecounting. FALSE = we want to count each person once for each site they are near.
+    avoidorphans=doExpandradius() # Expand distance searched, when a facility has no census block centroid within selected buffer distance
 
     # which datasystems are we searching?
     selectNaicsDS1 = input$selectNaicsDS1

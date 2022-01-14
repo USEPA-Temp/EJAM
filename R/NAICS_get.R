@@ -1,5 +1,18 @@
+#' script to download NAICS file with code and name of sector
+#'
+#' See source code. Mostly just a short script to get the 2017 codes and names.
+#' See \url{'https://www.census.gov/naics/?48967'}
+#' @param year
+#' @param url
+#' @param destfile
+#'
+#' @return names list with year as an attribute
+#' @export
+#'
 NAICS_get <- function(year=2017, url='https://www.census.gov/naics/2017NAICS/2-6%20digit_2017_Codes.xlsx', destfile= '~/Downloads/2017NAICS.xlsx') {
 # this can be used to create the NAICS dataset as for this package
+# See \url{https://www.census.gov/naics/}
+   
     download.file(
     url = url,
     destfile = destfile
@@ -18,7 +31,7 @@ NAICS_get <- function(year=2017, url='https://www.census.gov/naics/2017NAICS/2-6
   NAICS <- structure(NAICS, year=year)
   # attr(NAICS, 'year')
   # [1] 2017 # for example
-  cat('You can save the dataset using something like save(NAICS, file = \'yourpath/bufferfast/data/NAICS.rdata\') \n')
+  cat('You can save the dataset using something like save(NAICS, file = \'yourpath/EJAM/data/NAICS.rdata\') \n')
   # save(NAICS, file = './data/NAICS.rdata')
   return(NAICS)
 }

@@ -9,7 +9,8 @@ getrelevantCensusBlocksviaQuadTree(
   cutoff,
   maxcutoff,
   uniqueonly,
-  avoidorphans
+  avoidorphans,
+  tree
 )
 }
 \arguments{

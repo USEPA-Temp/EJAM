@@ -13,14 +13,15 @@ popweightedsums <- function(data, fieldnames, fieldnames_out, scaling, popname='
   if (missing(fieldnames)) {
     fieldnames <- c(
       "mins", "pctmin", "under5", "pctunder5", "over64", "pctover64",
-      "traffic.score", "pctpre1960", "pm", "o3", "cancer", "dpm", "resp","proximity.tsdf", "proximity.rmp", "proximity.npl", "proximity.npdes"
+      "traffic.score", "pctpre1960", "pm", "o3", "cancer", "dpm", "resp","proximity.tsdf", "proximity.rmp", "proximity.npl", "proximity.npdes","pctlths"
     )
     # TAKEN OUT:
     #"lowinc", "pctlowinc", "lths", "pctlths", "lingiso", "pctlingiso",
     scaling <- c(1,100,1,100,1,100,
-                 1,1,1,1,1,1,1,1,1,1,1)
+                 1,1,1,1,1,1,1,1,1,1,1,1)
   }
-  if (missing(fieldnames_out <- fieldnames)) {
+  fieldnames_out <- fieldnames
+  if (missing(fieldnames_out)) {
     fieldnames_out <- fieldnames
   }
   if (missing(scaling)) {
@@ -67,7 +68,7 @@ popweightedsums <- function(data, fieldnames, fieldnames_out, scaling, popname='
   }
 
   #merge together
-  result <- funprog::Reduce(merge, poweightedsums_subres)
+  result <- base::Reduce(merge, poweightedsums_subres)
 
   return(result)
 }
