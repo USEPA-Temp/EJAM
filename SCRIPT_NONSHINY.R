@@ -37,8 +37,8 @@ facilities <- dataLocDT
 
 # specify radius for circular buffer and other key parameters ####
 
-cutoff <- 1 # radius (miles?)
-maxcuttoff <- 50  # max distance to expand search to (miles?)
+cutoff <- 1 # radius (miles)
+maxcuttoff <- 31.07 # 50 km  # max distance to expand search to (miles?)
 avoidorphans <- TRUE  # Expand distance searched, when a facility has no census block centroid within selected buffer distance
 uniqueonly <- TRUE    # TRUE = stats are for dissolved single buffer to avoid double-counting. FALSE = we want to count each person once for each site they are near.
 
@@ -80,10 +80,14 @@ system.time(
 # # see results ####
 # 
 # head(dat)
-# 
-# system.time(
-#   ej_api_results <- batch.summarizer::ejscreenapi(dataLocDT$LONG, dataLocDT$LAT, radius = 1)
-# )
+
+
+
+
+
+  # ej_api_results <- ejscreenapi(dataLocDT$LONG[1:10], dataLocDT$LAT[1:10], radius = 1)
+#   #ej_api_results <- batch.summarizer::ejscreenapi(dataLocDT$LONG, dataLocDT$LAT, radius = 1)
+
 # 
 # ej_api_results <- ej_api_results %>%
 #   dplyr::relocate(

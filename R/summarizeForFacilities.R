@@ -12,7 +12,7 @@
 summarizeForFacilities <- function(facilities, cutoff, maxcutoff, uniqueonly, avoidorphans, ...) {
   
   blocks <- getrelevantCensusBlocksviaQuadTree(facilities, cutoff, maxcutoff, uniqueonly, avoidorphans, ...)
-  
+  cat('Aggreating results\n')
   doaggregate(facilities,blocks)
   
 }
