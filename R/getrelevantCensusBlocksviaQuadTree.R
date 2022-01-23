@@ -21,17 +21,21 @@ getrelevantCensusBlocksviaQuadTree <- function(facilities,cutoff,maxcutoff,uniqu
   facilities <- facilities[!is.na(facilities$LAT) & !is.na(facilities$LONG), ]
   #compute and add grid info
   earthRadius_miles <- 3959 # in case it is not already in global envt
-  facilities[,"LAT_RAD"] <- facilities$LAT * pi / 180
-  facilities[,"LONG_RAD"] <- facilities$LONG * pi / 180
-  facilities[,"FAC_X"] <- earthRadius_miles * cos(facilities$LAT_RAD) * cos(facilities$LONG_RAD)
-  facilities[,"FAC_Y"] <- earthRadius_miles * cos(facilities$LAT_RAD) * sin(facilities$LONG_RAD)
+  radians_per_degree <- pi / 180
+  
+  
+  facilities[,"LAT_RAD"]  <- facilities$LAT *  radians_per_degree
+  facilities[,"LONG_RAD"] <- facilities$LONG * radians_per_degree
+  cos_lat <- cos(facilities$LAT_RAD)
+  facilities[,"FAC_X"] <- earthRadius_miles * cos_lat * cos(facilities$LONG_RAD)
+  facilities[,"FAC_Y"] <- earthRadius_miles * cos_lat * sin(facilities$LONG_RAD)
   facilities[,"FAC_Z"] <- earthRadius_miles * sin(facilities$LAT_RAD)
 
   #now we need to buffer around the grid cell by the actual cutoff distance
   buffer_indexdistance <- ceiling(cutoff/indexgridsize) # this will be one or larger ... but where is this ever used??  indexgridsize was defined in initialization as say 10 miles
 
   # allocate result list
-  nRowsDf <- nrow(facilities)
+  nRowsDf <- NROW(facilities)
   res <- vector('list', nRowsDf)
 
   truedistance <- computeActualDistancefromSurfacedistance(cutoff)   # simply 7918*sin(cutoff/7918)
