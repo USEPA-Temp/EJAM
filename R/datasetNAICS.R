@@ -1,68 +1,61 @@
+#' clean up selected NAICS facilities by NAICS industrial sector code 
+#' 
+#'  NOTE:   A VERSION OF THIS IS WITHIN server.R 
+#'  and this was work in progress to possibly move it to a separate function
+#'  but that would require passing all these tables as parameters 
+#'  or assuming they are in memory. 
+#' \preformatted{
+#'     To pass all the reactives as parameters, you would do this: 
+#'     
+#'  selectIndustry1=input$selectIndustry1, 
+#'  selectIndustry2=input$selectIndustry2,
+#'  cutoff=getCutoff(), 
+#'  maxcutoff=getMaxcutoff(), 
+#'  get_unique=TRUE, 
+#'  avoidorphans=TRUE,
+#'  doExpandradius=doExpandradius(), 
+#'  selectNaicsDS1= input$selectNaicsDS1, 
+#'  selectNaicsDS2 =input$selectNaicsDS2)
+#'  }
+#'  
+#' @param selectIndustry1 reactive from shiny input$selectIndustry1
+#' @param selectIndustry2 reactive from shiny input$selectIndustry2
+#' @param cutoff  getCutoff()
+#' @param maxcutoff  getMaxcutoff() 
+#' @param get_unique default is FALSE now but was TRUE, but likely to get rid of this?! 
+#' @param avoidorphans default TRUE
+#' @param doExpandradius obsolete?
+#' @param selectNaicsDS1 was from shiny app input$selectNaicsDS1
+#' @param selectNaicsDS2  was from shiny app input$selectNaicsDS1
+#'
+#' @export
+#'
 datasetNAICS <- function(selectIndustry1, selectIndustry2, 
-                         cutoff, maxcuttoff=50, get_unique=TRUE, avoidorphans=TRUE, 
+                         cutoff, maxcutoff=50, get_unique=FALSE, 
+                         avoidorphans=TRUE, doExpandradius=NULL,
                          selectNaicsDS1, selectNaicsDS2) {   
   
-  # * OVERALL: Pick NAICS + get BUFFER Report ###############
-  #
-  # This is part of the Shiny app
-  # It helps select facilities from the FRS using NAICS (sector codes)
+  ################################################################## #
+  # Prep full FRS that has NAICS of all sites and their lat lon ####
+  # Dataset of FRS sites and NAICS in long format (used to be facdata.rdata)
+  ################################################################## #
   
-  # see also https://www.epa.gov/frs/frs-query 
-  
-  # NAICS codes 
-  # The North American Industry Classification System (NAICS)
-  # is a system for classifying establishments (individual business locations) 
-  # by type of economic activity.
-  # https://www.census.gov/naics/ 
-  
-  # NAICS codes 
-  # The North American Industry Classification System (NAICS)
-  # is a system for classifying establishments (individual business locations) 
-  # by type of economic activity.
-  # https://www.census.gov/naics/ 
-  # 
-  # The North American Industry Classification System (NAICS) is
-  # the standard used by Federal statistical agencies in
-  # classifying business establishments for the purpose of 
-  # collecting, analyzing, and publishing statistical data 
-  # related to the U.S. business economy.
-  # 
-  # The codes were updated 2007, 2012, 2017, and for 2022 (announced Dec. 2021).
-  # Proposed changes https://www.census.gov/naics/federal_register_notices/notices/fr02jy21.pdf
-  # Finalized changes: https://www.census.gov/naics/federal_register_notices/notices/fr21dc21.pdf 
-  # Effective Date for 2022 NAICS
-  # United States codes and Statistical
-  # Policy Directives: Federal statistical
-  # establishment data published for
-  # reference years beginning on or after
-  # January 1, 2022, should be published
-  # using the 2022 NAICS United States
-  # codes. Publication of NAICS United
-  # States, 2022 Manual is planned for
-  # January 2022 on the NAICS website at
-  # www.census.gov/naics. The updated
-  # Statistical Policy Directive No. 8, North
-  # American Industry Classification
-  # System: Classification of
-  # Establishments, will be effective
-  # immediately and will be posted on the
-  # OMB Statistical Programs and Standards
-  # website at www.whitehouse.gov/omb/
-  #   information-regulatory-affairs/
-  #   statistical-programs-standards/. 
-  # 
+  mytest <- frsdata::frs_naics_2016 # frsdata::facilities
+  mytest$cnaics <- as.character(mytest$NAICS)
   
   sub2 <- data.table::data.table(a = numeric(0), b = character(0))
-  print(paste("Number of records in empty data table ", nrow(sub2)))
+  
+  ################################################################## #
+  # CLEAN UP USER'S NAICS SELECTIONS ? ####
+  ################################################################## #
   
   if (nchar(input$selectIndustry1)>0 & length(input$selectIndustry2)>0) {
     return()
   }
-  
   # cutoff=getCutoff()
-  # maxcuttoff=getMaxcutoff()
+  # maxcutoff=getMaxcutoff()
   # get_unique=setUnique()
-  # avoidorphans=doExpandradius()
+  # avoidorphans=     ???  doExpandradius()
   
   # which datasystems are we searching?
   selectNaicsDS1 = input$selectNaicsDS1
@@ -82,57 +75,64 @@ datasetNAICS <- function(selectIndustry1, selectIndustry2,
     inputnaics <- input$selectIndustry2
     inputnaics=c(inputnaics1,inNAICS2)
     inputnaics=unique(inputnaics[inputnaics != ""])
-    
-    mytest <- EJAM::facilities  # THIS IS DATA IN THE PACKAGE
-    # > names(facilities)
-    # [1] "X"                      "REGISTRY_ID"            "FAC_NAME"               "FAC_STREET"             "FAC_CITY"               "FAC_STATE"              "FAC_ZIP"
-    # [8] "FAC_COUNTY"             "FAC_FIPS_CODE"          "FAC_EPA_REGION"         "FAC_INDIAN_CNTRY_FLG"   "FAC_FEDERAL_FLG"        "FAC_US_MEX_BORDER_FLG"  "FAC_CHESAPEAKE_BAY_FLG"
-    # [15] "FAC_NAA_FLAG"           "FAC_LAT"                "FAC_LONG"               "FACT_LAT_RAD"           "FACT_LONG_RAD"          "FAC_X"                  "FAC_Y"
-    # [22] "FAC_Z"
-    
-    mytest$cnaics <- as.character(EJAM::facilities$NAICS)
     x <- paste("^",inputnaics,collapse="|")
     y <- stringr::str_replace_all(string=x, pattern=" ", replacement = "")
-    matches <- unique (grep(y, mytest$cnaics, value=TRUE))
+    
+    ################################################################## #
+    # MATCH USER NAICS TO NAICS IN FRS DATASET TO GET LAT/LON OF MATCHED SITES ####
+    ################################################################## #
+    
+    matches <- unique(grep(y, mytest$cnaics, value=TRUE))
     
     if (length(selectNaicsDS1)>0 & length(selectNaicsDS2)>0) {
-      temp<-mytest[PROGRAM %in% selectNaicsDS1]
-      temp<-temp[cnaics %in% matches]
-      temp<-unique(temp[,.(REGISTRY_ID)])
-      sub1 <-data.table::as.data.table(merge(x = mytest, y = temp, by.x='REGISTRY_ID', by.y='REGISTRY_ID'), all.y=TRUE)
-      sub2<-sub1[PROGRAM %in% selectNaicsDS2]
-      sub2$ID<- c(seq.int(nrow(sub2)))
+      temp <- mytest[PROGRAM %in% selectNaicsDS1]
+      temp <- temp[cnaics %in% matches]
+      temp <- unique(temp[,.(REGISTRY_ID)])
+      sub1 <- data.table::as.data.table(merge(x = mytest, y = temp, by.x='REGISTRY_ID', by.y='REGISTRY_ID'), all.y=TRUE)
+      sub2 <- sub1[PROGRAM %in% selectNaicsDS2]
+      sub2$ID <- c(seq.int(nrow(sub2)))
     }
     else if (length(selectNaicsDS2)>0) {
-      sub2<-mytest[PROGRAM %in% selectNaicsDS2]
-      sub2$ID<- c(seq.int(nrow(sub2)))
+      sub2 < -mytest[PROGRAM %in% selectNaicsDS2]
+      sub2$ID <- c(seq.int(nrow(sub2)))
     }
     else if (length(selectNaicsDS1)>0) {
-      sub2<-mytest[cnaics %in% matches]
-      sub2$ID<- c(seq.int(nrow(sub2)))
+      sub2 <- mytest[cnaics %in% matches]
+      sub2$ID <- c(seq.int(nrow(sub2)))
       colnames(sub2)
     }
+    print(paste("Number of FRS facility matches for specified NAICS = ", nrow(sub2)))
     
-    # Send NAICS-based facilities to buffering and aggregating functions ######
     
-    print(paste("Number of matches = ", nrow(sub2)))
+    
+    
+    
+    ################################################################## #
+    # CALL FUNCTIONS DOING DISTANCES (BUFFERS) AND AGGREGATION  ######
+    ################################################################## #
+    
     if (nrow(sub2)>0) {
       
-      system.time(res <- getrelevantCensusBlocksviaQuadTree(sub2,cutoff,maxcuttoff,get_unique,avoidorphans))
-      
-      system.time(dat <- doaggregate(sub2,res))
+      system.time({
+        res <- getrelevantCensusBlocksviaQuadTree(
+          sitepoints = sub2, cutoff, maxcutoff, get_unique, avoidorphans
+          )
+        })
+      system.time({
+        dat <- doaggregate(sub2, res)
+        })
       
       return(dat)
     } else {
       print("No matches were found")
-      dat <-data.table::as.data.table(setNames(data.frame(matrix(ncol = 1, nrow = 0)),paste0("No matches were found"#, c(1:1)
+      dat <- data.table::as.data.table(setNames(data.frame(matrix(ncol = 1, nrow = 0)),paste0("No matches were found"#, c(1:1)
       )))
       return(dat)
     }
     
   } else {
     print("Please submit an industry to run this query")
-    dat <-data.table::as.data.table(setNames(data.frame(matrix(ncol = 1, nrow = 0)), paste0("Please submit an industry to run this query", c(1:1))))
+    dat <- data.table::as.data.table(setNames(data.frame(matrix(ncol = 1, nrow = 0)), paste0("Please submit an industry to run this query", c(1:1))))
     return(dat)
   }
 }

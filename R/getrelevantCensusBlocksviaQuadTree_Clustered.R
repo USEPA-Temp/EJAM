@@ -114,11 +114,11 @@ facilities <- facilities[!is.na(facilities$LAT) & !is.na(facilities$LONG), ]
       # distances <- as.matrix(pdist(x,y))
 
       # #clean up fields
-      # tmp[,Distance := distances[,c(1)]]
+      # tmp[,distance := distances[,c(1)]]
       # tmp[,ID := facilities2use[i, .(ID)]]
 
       # #filter actual distance
-      # tmp <- tmp[Distance <= truedistance, .(BLOCKID,Distance,ID)]
+      # tmp <- tmp[distance <= truedistance, .(BLOCKID, distance, ID)]
 
       #hold your horses, what if there are no blocks and you are supposed to avoid that
       # && (nrow(tmp))==0
@@ -134,12 +134,12 @@ facilities <- facilities[!is.na(facilities$LAT) & !is.na(facilities$LONG), ]
         distances <- as.matrix(pdist(x,y))
 
         #clean up fields
-        tmp[,Distance := distances[,c(1)]]
+        tmp[,distance := distances[,c(1)]]
         tmp[,ID := facilities2use[i, .(ID)]]
 
         #filter to max distance
         truemaxdistance <- computeActualDistancefromSurfacedistance(maxcutoff)
-        tmp <- tmp[Distance<=truemaxdistance, .(BLOCKID,Distance,ID)]
+        tmp <- tmp[distance<=truemaxdistance, .(BLOCKID, distance,ID)]
         partialres[[i]] <- tmp
       } else {
         partialres[[i]] <- tmp
@@ -153,7 +153,7 @@ facilities <- facilities[!is.na(facilities$LAT) & !is.na(facilities$LONG), ]
 
   print(paste("Total Rowcount: ",nrow(bound)) )
   if ( uniqueonly) {
-    data.table::setkey(bound, "BLOCKID","Distance","ID")
+    data.table::setkey(bound, "BLOCKID","distance","ID")
     bound <- unique(bound, by=c("BLOCKID"))
   }
   print(paste("Final Rowcount: ",nrow(bound)) )

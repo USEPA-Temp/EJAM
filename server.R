@@ -3,9 +3,9 @@
 # aggregating envt and demog indicators in each circular buffer around each facility or site
 #' ####################################################################################
 
-shinyServer(function(input, output,session) {
+shinyServer(function(input, output, session) {
   
-  # Select Facilities, Industry, or Locations ##########################################
+  # warnings and text outputs re selected Facilities, Industry, or Locations ##########################################
   numUniverseSource <- function() {
     selInd=0
     if (nchar(input$selectIndustry1)>0 | length(input$selectIndustry2)>0) {
@@ -52,14 +52,12 @@ shinyServer(function(input, output,session) {
     }
   }
   
-  # Outputs ##########################################
-  
   output$inputWarning <- renderPrint({
-    getWarning1();
+    getWarning1()
   })
   
   output$inputWarning2 <- renderPrint({
-    getWarning2();
+    getWarning2()
   })
   
   output$selectInd1 <- renderPrint({
@@ -83,19 +81,22 @@ shinyServer(function(input, output,session) {
   })
   
   output$selectScope1 <- renderPrint({
-    input$goButton1
+    input$goButton1  # seems not to be used at all
     isolate(input$selectFrom1)
   })
   
   output$selectScope2 <- renderPrint({
-    input$goButton1
+    input$goButton1  # seems not to be used at all
     isolate(input$selectFrom2) })
   
-  output$inputValue <- renderPrint(input$goButton3)
-  output$file1Df <- renderPrint({input$file1})
-  output$file2Df <- renderPrint({input$file2})
-  myfile1 <- reactive({input$file1})
-  myfile2 <- reactive({input$file2})
+  output$inputValue <- renderPrint(input$goButton3)  # seems not to be used at all
+  output$file_uploaded_FRS_IDs_df <- renderPrint({input$file_uploaded_FRS_IDs}) # not really used except in testing tab
+  output$file_uploaded_latlons_df <- renderPrint({input$file_uploaded_latlons}) # not really used except in testing tab
+  
+  # names of input file  ##########################################
+  myfile_uploaded_FRS_IDs <- reactive({input$file_uploaded_FRS_IDs})
+  
+  myfile_uploaded_latlons <- reactive({input$file_uploaded_latlons})
   
   # Input Radius, Maxcutoff, etc. parameters ##########################################
   
@@ -104,7 +105,7 @@ shinyServer(function(input, output,session) {
   })
   
   getMaxcutoff <- reactive({
-    return(4000)
+    return(maxcutoff_default)
   })
   
   setUnique <- reactive({
@@ -128,13 +129,12 @@ shinyServer(function(input, output,session) {
   })
   
   
-  
   ####################################################################################################################### #
-  # ** -----LOCATION LIST IS USED FOR BUFFERING** ######
+  # *** LAT LON: LOCATION LIST IS USED FOR BUFFERING** ######
   # imported location data
   ####################################################################################################################### #
   dataLocationList <- reactive({
-    in2File <- input$file2
+    in2File <- input$file_uploaded_latlons
     if (is.null(in2File))
       return(NULL)
     isolate(read.table(file=in2File$datapath, sep=',', header=TRUE, quote='"'))
@@ -149,22 +149,33 @@ shinyServer(function(input, output,session) {
     }
   )
   ####################################################################################### #
-  #  Find nearby blocks and aggregate for buffer - via quadtree and doaggregate  # *********** ########
+  # _____Find nearby blocks and aggregate for buffer - via quadtree and doaggregate  # *********** ########
   # IT GETS NEARBY BLOCKS AND AGGREGATES EJSCREEN DATA FROM THE BLOCKS NEAR EACH POINT
   ####################################################################################### #
   dataLocationListProcessed <- reactive({
     if(is.null(dataLocationList())) {return () }
-    dataLocDT = data.table::as.data.table(dataLocationList())
-
+    sitepoints <- data.table::copy(dataLocationList())
+    setDT(sitepoints, key = 'siteid')
+    
     cutoff = getCutoff() # radius (units?)
-    maxcuttoff = getMaxcutoff()  # reactive, max distance to search
+    maxcutoff = getMaxcutoff()  # reactive, max distance to search
     get_unique = setUnique()     # reactive, TRUE = stats are for dissolved single buffer to avoid doublecounting. FALSE = we want to count each person once for each site they are near.
     avoidorphans = doExpandradius() # Expand distance searched, when a facility has no census block centroid within selected buffer distance
-
-    system.time(res <- getrelevantCensusBlocksviaQuadTree(dataLocDT,cutoff,maxcuttoff,get_unique,avoidorphans))
-
-    system.time(dat <- doaggregate(dataLocDT,res))
-
+    
+    system.time({
+      # note this does require that blockquadtree be available as data
+      res <- getrelevantCensusBlocksviaQuadTree(sitepoints =  sitepoints,
+      cutoff = radius,
+      maxcutoff = maxcutoff,
+      uniqueonly = uniqueonly,
+      avoidorphans = avoidorphans
+      )
+    })
+    
+    system.time({
+      dat <- doaggregate(sitepoints, res)
+    })
+    
     return(dat)
   })
   # End of functions used for the dataLocList option
@@ -173,14 +184,14 @@ shinyServer(function(input, output,session) {
   
   
   ####################################################################################################################### #
-  # ** -----FACILITY LIST IS USED FOR BUFFERING** #######
+  # *** ID: FACILITY LIST IS USED FOR BUFFERING** #######
   # imported facility list
   ####################################################################################################################### #
   dataFacList <- reactive({
-    inFile <- input$file1
+    inFile <- input$file_uploaded_FRS_IDs
     if (is.null(inFile))
       return(NULL)
-    input$goButton3
+    input$goButton3  # seems not to be used at all
     isolate(data.table::as.data.table(read.table(file=inFile$datapath, sep=',', header=TRUE, quote='"')))
   }
   )
@@ -191,26 +202,26 @@ shinyServer(function(input, output,session) {
     }
   )
   ####################################################################################### #
-  #  Find nearby blocks and aggregate for buffer - via quadtree and doaggregate  # *********** ########
+  # _____Find nearby blocks and aggregate for buffer - via quadtree and doaggregate  # *********** ########
   # IT GETS NEARBY BLOCKS AND AGGREGATES EJSCREEN DATA FROM THE BLOCKS NEAR EACH POINT
   ####################################################################################### #
   dataFacListProcessed <- reactive({
     kimssampledata <- dataFacList()
-    kimssamplefacilities <-data.table::as.data.table(merge(x = kimssampledata, y = facilities, by.x='REGISTRY_ID', by.y='REGISTRY_ID', all.x=TRUE))
+    kimssamplefacilities <- data.table::as.data.table(merge(x = kimssampledata, y = facilities, by.x='REGISTRY_ID', by.y='REGISTRY_ID', all.x=TRUE))
     kimsunique <- data.table::as.data.table(unique(kimssamplefacilities[,.(REGISTRY_ID,LAT,LONG)]))
     
     rm(kimssampledata)
     rm(kimssamplefacilities)
     
-    kimsunique$ID<- c(seq.int(nrow(kimsunique)))
-    kimsunique<-as.data.table(unique(kimsunique[,.(ID,LAT,LONG)]))
+    kimsunique$ID <- c(seq.int(nrow(kimsunique)))
+    kimsunique <-as.data.table(unique(kimsunique[,.(ID,LAT,LONG)]))
     
     cutoff=getCutoff()
     maxcuttoff=getMaxcutoff()
     get_unique=setUnique()
     avoidorphans=doExpandradius()
     
-    system.time(res <- getrelevantCensusBlocksviaQuadTree(kimsunique,cutoff,maxcuttoff,get_unique,avoidorphans))
+    system.time(res <- getrelevantCensusBlocksviaQuadTree(sitepoints=kimsunique,cutoff,maxcuttoff,get_unique,avoidorphans))
     
     system.time(dat <- doaggregate(kimsunique, res))
     
@@ -224,24 +235,42 @@ shinyServer(function(input, output,session) {
   
   
   ####################################################################################################################### #
-  # ** -----NAICS LIST IS USED FOR BUFFERING**  #######
+  # *** NAICS: SECTORS USED FOR BUFFERING**  #######
   ####################################################################################################################### #
   
   # function that runs buffering on facilities selected via the NAICS dataset,
   # is defined here, not easily in separate file because it uses several reactives and facilities? which is in global env
   
   datasetNAICS <- function() {
-    # parameters needed:  
-    # input$selectIndustry1, input$selectIndustry2, getCutoff(), getMaxcutoff(), doExpandraduis(), input$selectNaicsDS1, 
-    # 
+    #### to pass all the reactives as parameters, you would do this: 
+    # selectIndustry1=input$selectIndustry1, 
+    # selectIndustry2=input$selectIndustry2,
+    # cutoff=getCutoff(), 
+    # maxcutoff=getMaxcutoff(), 
+    # get_unique=TRUE, 
+    # avoidorphans=TRUE,
+    # doExpandradius=doExpandradius(), 
+    # selectNaicsDS1= input$selectNaicsDS1, 
+    # selectNaicsDS2 =input$selectNaicsDS2)
+    
+    
+    ################################################################## #
+    # prep full FRS that has NAICS of all sites and their lat lon ####
+    # Dataset of FRS sites and NAICS in long format (used to be facdata.rdata)
+    ################################################################## #
+    
+    mytest <- frsdata::frs_naics_2016 # frsdata::facilities
+    mytest$cnaics <- as.character(mytest$NAICS)
+    
     sub2 <- data.table::data.table(a = numeric(0), b = character(0))
     
-    print(paste("Number of records in empty data table ",nrow(sub2)))
+    ################################################################## #
+    # clean up users selections ####
+    ################################################################## #
     
     if (nchar(input$selectIndustry1)>0 & length(input$selectIndustry2)>0) {
       return()
     }
-    
     cutoff=getCutoff()  # reactive
     maxcuttoff=getMaxcutoff()  # reactive, max distance to search
     get_unique=setUnique() # reactive, TRUE = stats are for dissolved single buffer to avoid doublecounting. FALSE = we want to count each person once for each site they are near.
@@ -264,11 +293,14 @@ shinyServer(function(input, output,session) {
       inputnaics <- input$selectIndustry2
       inputnaics=c(inputnaics1,inNAICS2)
       inputnaics=unique(inputnaics[inputnaics != ""])
-      mytest <- facilities
-      mytest$cnaics <- as.character(facilities$NAICS)
-      x <- paste("^",inputnaics,collapse="|")
-      y <- stringr::str_replace_all(string=x, pattern=" ", repl="")
-      matches <- unique (grep(y, mytest$cnaics, value=TRUE))
+      x <- paste("^",inputnaics,collapse="|")   ### the NAICS specified by user
+      y <- stringr::str_replace_all(string=x, pattern=" ", repl="")  
+      
+      ################################################################## #
+      # Match user NAICS to FRS NAICS, TO GET LAT/LON OF MATCHED SITES ####
+      ################################################################## #
+      
+      matches <- unique(grep(y, mytest$cnaics, value=TRUE))  # 
       
       if (length(selectNaicsDS1)>0 & length(selectNaicsDS2)>0) {
         temp<-mytest[PROGRAM %in% selectNaicsDS1]
@@ -287,17 +319,19 @@ shinyServer(function(input, output,session) {
         sub2$ID<- c(seq.int(nrow(sub2)))
         colnames(sub2)
       }
+      print(paste("Number of matches = ", nrow(sub2)))
       
+      ################################################################## #
+      # CALL FUNCTIONS DOING DISTANCES (BUFFERS) AND AGGREGATION  ### ###
+      ################################################################## #
       ####################################################################################### #
-      #  Find nearby blocks and aggregate for buffer - via quadtree and doaggregate  # *********** ########
+      # _____Find nearby blocks and aggregate for buffer - via quadtree and doaggregate  # *********** ########
       # IT GETS NEARBY BLOCKS AND AGGREGATES EJSCREEN DATA FROM THE BLOCKS NEAR EACH POINT
       ####################################################################################### #
-      # Run the results through the back end algorithm
       
-      print(paste("Number of matches = ", nrow(sub2)))
       if (nrow(sub2)>0) {
         
-        system.time(res <- getrelevantCensusBlocksviaQuadTree(sub2,cutoff,maxcuttoff,get_unique,avoidorphans))
+        system.time(res <- getrelevantCensusBlocksviaQuadTree(sitepoints=sub2,cutoff,maxcuttoff,get_unique,avoidorphans))
         
         system.time(dat <- doaggregate(sub2,res))
         
@@ -319,7 +353,7 @@ shinyServer(function(input, output,session) {
   
   
   # ###########################################'
-  #### GET USER INFO AS METADATA for DOWNLOAD #########
+  #### Get user info as metadata on results #########
   # ###########################################'
   # Support function for grabbing the user input that will be output as meta data in the data download
   addUserInput <- function(file,userin,mystring,strdesc){
@@ -341,7 +375,7 @@ shinyServer(function(input, output,session) {
     return(userin)
   }
   
-  # DOWNLOAD RESULTS #######
+  # Download the Results #######
   output$downloadData1 <- downloadHandler(
     filename = function() {
       paste0("ej-", Sys.Date(), "-",Sys.time(), ".txt",sep='')
@@ -377,27 +411,27 @@ shinyServer(function(input, output,session) {
       }
       
       f1=""
-      if(!is.null(input$file1)) {
-        f1=input$file1
+      if(!is.null(input$file_uploaded_FRS_IDs)) {
+        f1=input$file_uploaded_FRS_IDs
         f1=f1[0]
       }
       
       f2=""
-      if(!is.null(input$file2)) {
-        f2=input$file2
+      if(!is.null(input$file_uploaded_latlons)) {
+        f2=input$file_uploaded_latlons
         f2=f2[0]
       }
       
       #addUserInput <- function(file,userin,mystring,strdesc){
-      userin=addUserInput(file,userin,definedOutput1,"Defined output: ")
-      userin=addUserInput(file,userin,definedOutput2,"Defined output: ")
-      userin=addUserInput(file,userin,input$expandRadius,"Expand distance for facilities with no census block centroid within selected buffer distance: ")
-      userin=addUserInput(file,userin,as.character(getCutoff()),"Define Buffer Distance (in miles?): ") #as.character(getCutoff())
-      userin=addUserInput(file,userin,selectNaicsDS2,"Include facilities with records in: ")
-      userin=addUserInput(file,userin,selectNaicsDS1,"Match your NAICS code selection with: ")
-      userin=addUserInput(file,userin,industryList,"Industry/Industries: ")
-      userin=addUserInput(file,userin,f1,"Upload list of FRS. Filename: ") #input$file1
-      userin=addUserInput(file,userin,f2,"Upload list of locations with coordinates. Filename: ") #input$file2
+      userin=addUserInput(file,userin, definedOutput1,   "Defined output: ")
+      userin=addUserInput(file,userin, definedOutput2,   "Defined output: ")
+      userin=addUserInput(file,userin, input$expandRadius, "Expand distance for facilities with no census block centroid within selected buffer distance: ")
+      userin=addUserInput(file,userin, as.character(getCutoff()), "Define Buffer Distance (in miles?): ") #as.character(getCutoff())
+      userin=addUserInput(file,userin, selectNaicsDS2, "Include facilities with records in: ")
+      userin=addUserInput(file,userin, selectNaicsDS1, "Match your NAICS code selection with: ")
+      userin=addUserInput(file,userin, industryList,   "Industry/Industries: ")
+      userin=addUserInput(file,userin, f1,  "Upload list of FRS IDs. Filename: ") #input$file_uploaded_FRS_IDs
+      userin=addUserInput(file,userin, f2,  "Upload list of locations with lat lon coordinates. Filename: ") #input$file2 was old name # file_uploaded_latlons
       
       cat(userin,  file=file)
       
@@ -412,22 +446,23 @@ shinyServer(function(input, output,session) {
   )
   
   datasetResults <- function(){
-    if (length(getWarning1()>1) | length(getWarning2()>1)) {
+    if (length(getWarning1() > 1) | length(getWarning2() > 1)) {
       return()
     }
-    else if (nchar(input$selectIndustry1)>0 | length(input$selectIndustry2)>0) {
-      return(datasetNAICS( ))
+    else if (nchar(input$selectIndustry1) > 0 | length(input$selectIndustry2) > 0) {
+      return(datasetNAICS( )) # that is a separate function not a reactive 
     }
-    else if (length(myfile2())>1) {
+    else if (length(myfile_uploaded_latlons()) > 1) {
       return(dataLocationListProcessed())
     }
-    else if (length(myfile1())>1) {
+    else if (length(myfile_uploaded_FRS_IDs()) > 1) {
       return(dataFacListProcessed())
     }
   }
   
   output$inNAICSresult <- renderTable(
     {
+      # note that datasetNAICS is a separate function, not a reactive
       if(is.null(datasetNAICS( ))) {return () }
       datasetNAICS( )
     }

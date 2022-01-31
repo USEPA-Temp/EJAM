@@ -1,6 +1,9 @@
 #' Key buffering function - wrapper for other functions doing the work
-#'
-#' @param facilities see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions
+#' 
+#' 
+#'  As written it assumes that block location data file is already in global environment. 
+#'  
+#' @param sitepoints see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions
 #' @param cutoff  see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions
 #' @param maxcutoff  see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions
 #' @param uniqueonly  see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions
@@ -9,10 +12,10 @@
 #'
 #' @export
 #'
-getrelevantCensusBlocks <- function(facilities, cutoff, maxcutoff, uniqueonly, avoidorphans, ...) {
+getrelevantCensusBlocks <- function(sitepoints, cutoff, maxcutoff, uniqueonly, avoidorphans, ...) {
   # wrapper to make it simple to switch between functions to use for this, clustered vs not, etc.
 
-  # getrelevantCensusBlocksviaQuadTree_Clustered(facilities, cutoff, maxcutoff, uniqueonly, avoidorphans, ...)
+  # getrelevantCensusBlocksviaQuadTree_Clustered(sitepoints, cutoff, maxcutoff, uniqueonly, avoidorphans, ...)
 
-  getrelevantCensusBlocksviaQuadTree(facilities, cutoff, maxcutoff, uniqueonly, avoidorphans, ...)
+  getrelevantCensusBlocksviaQuadTree(sitepoints, cutoff, maxcutoff, uniqueonly, avoidorphans, ...)
 }

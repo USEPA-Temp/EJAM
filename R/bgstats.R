@@ -1,13 +1,9 @@
-#' @name blockgroupstats
+#' @name bgstats2020
 #' @docType data
 #' @title EJSCREEN demographic and enviromental indicators for Census block groups
 #'
-#' @description 
-#' This is essentially the EJSCREEN dataset, but 
-#'   could be replaced with something using different indicators.
+#' This is essentially the EJSCREEN dataset, but could be replaced with something using different indicators.
 #'   It has demographic and environmental data from EJSCREEN.
-#'   
-#' @details 
 #'   NOTE: It also has the race/ethnic subgroups that add up to minority or people of color, 
 #'   while EJSCREEN as of Jan 2022 did not have those variables.
 #'   However those variables are not filled in for Puerto Rico, so 
@@ -21,9 +17,12 @@
 #'   
 #'   It is a data.table of US Census blockgroups (not blocks). Approx 220,333 rows, approx 100 columns.
 #'   See \url{https:\\www.epa.gov\ejscreen}
+#'   names(bgstats2020) include bgfips, pop, pctlowinc, pcthisp, etc.
+#'   or bgstats2020 as renamed
 #'   
-#'   column names include bgfips, pop, pctlowinc, pcthisp, etc.
-#'   
-#' @seealso \link{create_bgstats2000}    
+#'   @details 
+#'   # notes on cleaning up and changing the dataset starting from ejscreen::bg20 etc
+#'   # used create_bgstats2020() to make bgstats2020.rda data
 #'   
 NULL
+

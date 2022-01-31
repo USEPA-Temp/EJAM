@@ -130,9 +130,9 @@ shinyUI(
 
       fluidRow(
         column(12, wellPanel(
-          # upload FRS IDs as file1 ##########
+          ########## ########## ########## upload FRS IDs as file_uploaded_FRS_IDs ##########
           fileInput(
-            'file1',
+            'file_uploaded_FRS_IDs',
             label = htmltools::h5(
               "Upload list of FRS identifiers",
               htmltools::a(
@@ -151,9 +151,9 @@ shinyUI(
         htmltools::h4("OR", align = "center"),
 
         column(12, wellPanel(
-          # upload lat lon list as file2 ##########
+          # upload lat lon list as file_uploaded_latlons ##########
           fileInput(
-            "file2",
+            "file_uploaded_latlons",
             label = htmltools::h5(
               "Upload list of locations with coordinates",
               htmltools::a(
@@ -240,7 +240,7 @@ shinyUI(
         ),
         c(
           "Individual facility statistics" = "no",
-          "Output for aggregating population statistics" = "yes"
+          "Output for aggregating population statistics [*this may change]" = "yes"
         ),
         selected = NULL,
         inline = TRUE,
@@ -267,8 +267,8 @@ shinyUI(
               #verbatimTextOutput("selectInd2"),
               #verbatimTextOutput("selectScope1"),
               #verbatimTextOutput("selectScope2"),
-              #verbatimTextOutput("file1Df"),
-              #verbatimTextOutput("file2Df"),)
+              #verbatimTextOutput("file_uploaded_FRS_IDs_df"),
+              #verbatimTextOutput("file_uploaded_latlons_df"),)
     )
   )
 )

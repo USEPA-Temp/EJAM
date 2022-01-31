@@ -30,13 +30,11 @@ pkgs <- list()
 library(EJAM) # This package's functions and data (block points, blockgroup indicators, facility points, NAICS, etc.)
 library(foreach) # main reason for using foreach::foreach() is that it supports parallel execution, that is, it can execute those repeated operations on multiple processors/cores on your computer (and there are other advantages as well)
 library(sp) # https://cran.r-project.org/web/packages/sp/vignettes/over.pdf
-library(SearchTrees)
-library(data.table)
+library(SearchTrees)# efficient storage of block points info and selection of those within a certain distance
+library(data.table)  # faster than data.frame
 library(pdist)
 library(blockdata)
 
-# library(data.table)  # faster than data.frame
-# library(SearchTrees) # efficient storage of block points info and selection of those within a certain distance
 # library(doSNOW) ; library(foreach)  # parallel processing, efficient looping?
 # library(rgdal) ; library(maps) ; library(pdist) #?  # Geospatial tools
 # library(RMySQL) # only if loading data from SQL or using SQL for buffering as was tested in an alternative to getrelevantCensusBlocks...
@@ -49,17 +47,12 @@ CountCPU <- 2
 indexgridsize <- 10  # need to confirm if and how this grid is actually used
 translate_fieldnames <- TRUE # may depend on dataset - this is about whether to rename the columns to friendlier variable names in init.getdata.R
 
-############ GET DATASETS? in package ############
+maxcutoff_default <- 4000 # 4000 miles seems excessive, so just check if it matters for performance. 
 
-# THESE ARE AVAILABLE IF THIS PACKAGE IS INSTALLED - they are data()
-#
-#  pkg should just have the latest version of each
-# and that vintage would be made clear as attribute of dataset
-# since file names variable names are generic.
-#   blockgroupstats
-#   NAICS
-#   blockdata
-#   facilities
+############ GET DATASETS? in package ############
+# 
+# For names of the data files needed and their colnames, see
+# EJAM-package.R via help(package='EJAM')
 
 ############ CONSTANTS ############
 
@@ -80,6 +73,8 @@ crd <- function(x){
 
 National_Demographic_Index <- (weighted.mean(EJAM::blockgroupstats$pctmin, EJAM::blockgroupstats$pop, na.rm = TRUE) +
                                  weighted.mean(EJAM::blockgroupstats$pctlowinc, EJAM::blockgroupstats$pop, na.rm = TRUE) ) / 2
+# National_Demographic_Index <- (weighted.mean(EJAM::blockgroupstats$pctmin, EJAM::blockgroupstats$pop, na.rm = TRUE) +
+#                                  weighted.mean(EJAM::blockgroupstats$pctlowinc, EJAM::blockgroupstats$pop, na.rm = TRUE) ) / 2
 
 # cat(
 #   '\n CALCULATED DEMOG US INDEX AVG: \n National_Demographic_Index <- usastats[usastats$PCTILE == \'mean\',
