@@ -8,7 +8,7 @@ if (1 ==0) {
   # and note that right now batch.summarizer::ejscreenapi() is in that package not here
 
   # and see  census2020download::blocks2020  for newer census data on blocks but may move to EJAM-Blockdata?
-  
+
   # and facilities_prep may be obsolete or should be done before save that as dataset and build a package.
 
 
@@ -49,7 +49,7 @@ if (1 ==0) {
   # blockwts
 
   # call function that finds nearby blocks  ####
-
+  localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
   system.time({
     # results_by_site <- summarizeForFacilities(
 
@@ -60,7 +60,9 @@ if (1 ==0) {
       cutoff = radius,
       maxcutoff = maxcutoff,
       uniqueonly = uniqueonly,
-      avoidorphans = avoidorphans
+      avoidorphans = avoidorphans,
+      tree = localtree
+
     )
   }
   )
