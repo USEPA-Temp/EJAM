@@ -25,7 +25,7 @@ if (1 ==0) {
   # can specify random test points (sites) ######
   #sitepoints <- points100example %>% head(1)# data in this package
 
-  sitepoints <- data.table::copy(EJAM::points1000example)
+  sitepoints <- data.table::copy(EJAM::points100example)
   # sitepoints <- data.table::copy(EJAM::points100example)   # NOTE the first point is far outside the continental US and returns no data using census 2010 blocks.
   sitepoints[ , siteid := .I]
   data.table::setnames(sitepoints, 'LAT', 'lat')
@@ -61,7 +61,7 @@ if (1 ==0) {
       maxcutoff = maxcutoff,
       uniqueonly = uniqueonly,
       avoidorphans = avoidorphans,
-      tree = localtree
+      quadtree = localtree
 
     )
   }

@@ -170,7 +170,7 @@ shinyServer(function(input, output, session) {
       maxcutoff = maxcutoff,
       uniqueonly = uniqueonly,
       avoidorphans = avoidorphans,
-      tree = localtree
+      quadtree = localtree
       )
     })
     system.time({
