@@ -9,14 +9,19 @@
 #' @param maxcutoff miles distance (check what this actually does)
 #' @param uniqueonly logical WILL BE REMOVED AND DONE OUTSIDE THIS FUNCTION. default FALSE (may remove this param) Whether to retain only unique blocks (unique residents) to avoid double-counting (but we want to drop duplicates later, not in here)
 #' @param avoidorphans logical
+#' @param quadtree a quadtree object created from the SearchTree package example: SearchTrees::createTree(blockdata::quaddata, treeType = "quad", dataType = "point")
 #'
 #' @seealso \link{getrelevantCensusBlocksviaQuadTree_Clustered}  \link{computeActualDistancefromSurfacedistance}
 #' @export
 #' @import data.table
 #' @importFrom pdist "pdist"
 #'
-getrelevantCensusBlocksviaQuadTree <- function(sitepoints, cutoff, maxcutoff, uniqueonly=FALSE, avoidorphans) {
+getrelevantCensusBlocksviaQuadTree <- function(sitepoints, cutoff, maxcutoff, uniqueonly=FALSE, avoidorphans, quadtree) {
   
+  if(class(quadtree) != "QuadTree"){
+    stop('quadtree must be an object created from SearchTrees package with treeType = "quad" and dataType = "point"')  
+  }
+
   #pass in a list of uniques and the surface cutoff distance
   #filter na values
   sitepoints <- sitepoints[!is.na(sitepoints$lat) & !is.na(sitepoints$lon), ]
@@ -48,7 +53,6 @@ getrelevantCensusBlocksviaQuadTree <- function(sitepoints, cutoff, maxcutoff, un
   nRowsDf <- NROW(sitepoints)
   res <- vector('list', nRowsDf)
   
-
   #### LOOP OVER THE sitepoints STARTS HERE ####
 
 
@@ -63,8 +67,8 @@ for (i in 1:nRowsDf) {
     z_hi  <-  coords[,FAC_Z]+truedistance
 
     if ((i %% 100)==0) {print(paste("Cells currently processing: ",i," of ", nRowsDf) ) }
-    
-    vec <- SearchTrees::rectLookup(blockdata::blockquadtree, unlist(c(x_low,z_low)), unlist(c(x_hi,z_hi))) # blockquadtree  here but localtree in clustered version of function
+
+    vec <- SearchTrees::rectLookup(quadtree, unlist(c(x_low,z_low)), unlist(c(x_hi,z_hi)))
 
     tmp <- blockdata::quaddata[vec, ] 
     x <- tmp[ , .(BLOCK_X, BLOCK_Y, BLOCK_Z)] # but not BLOCKID ?? 
@@ -81,8 +85,7 @@ for (i in 1:nRowsDf) {
     # hold your horses, what if there are no blocks and you are supposed to avoid that
     if ( avoidorphans && (nrow(tmp))==0 ){
       #search neighbors, allow for multiple at equal distance
-      vec <- SearchTrees::knnLookup(blockdata::blockquadtree, unlist(c(coords[ , 'FAC_X'])), unlist(c(coords[ , 'FAC_Z'])), k=10)   # blockquadtree  here but localtree in clustered version of function
-#      vec <- SearchTrees::knnLookup(blockdata::blockquadtree,c(coords[ , FAC_X]),c(coords[,FAC_Z]),k=10)   # blockquadtree  here but localtree in clustered version of function
+      vec <- SearchTrees::knnLookup(quadtree, unlist(c(coords[ , 'FAC_X'])), unlist(c(coords[ , 'FAC_Z'])), k=10)      
       tmp <- blockdata::quaddata[vec[1,], ]
 
       x <- tmp[, .(BLOCK_X,BLOCK_Y,BLOCK_Z)]
@@ -100,6 +103,7 @@ for (i in 1:nRowsDf) {
     } else {
       result <- rbind(result, tmp)
     }
+
   }
 
   # Actually, should only do this removal of duplicate blocks (residents) outside the getrelevant... function, so that the function gets all facility-specific results to save, 
@@ -122,3 +126,4 @@ for (i in 1:nRowsDf) {
   
   return(result)
 }
+

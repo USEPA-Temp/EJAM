@@ -21,6 +21,7 @@ library(SearchTrees)# efficient storage of block points info and selection of th
 library(data.table)  # faster than data.frame
 library(pdist)
 library(blockdata)
+library(frsdata)
 
 # library(doSNOW) ; library(foreach)  # parallel processing, efficient looping?
 # library(rgdal) ; library(maps) ; library(pdist) #?  # Geospatial tools
