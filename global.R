@@ -3,19 +3,6 @@
 
 
 ######################################################################################################## #
-############  Things needed only if running this Shiny app:############
-######################################################################################################## #
-
-library(shiny)
-library(EJAM) # This package's functions and data (block points, blockgroup indicators, facility points, NAICS, etc.)
-s_options <- EJAM::NAICS  # lazy loaded from this package as data, used in ui.R
-s_dropdown_naics <- c()
-options(shiny.maxRequestSize = 9*1024^2)
-server <- "127.0.0.1"
-# setwd("~")
-
-
-######################################################################################################## #
 ############  Things needed even if not using Shiny app, to use the package at all:############
 ######################################################################################################## #
 
@@ -25,7 +12,7 @@ server <- "127.0.0.1"
 # Should not load packages using library or require in a package, but specify in DESCRIPTION file.
 # but need to in a Shiny app.
 
-pkgs <- list()
+# pkgs <- list()
 
 library(EJAM) # This package's functions and data (block points, blockgroup indicators, facility points, NAICS, etc.)
 library(foreach) # main reason for using foreach::foreach() is that it supports parallel execution, that is, it can execute those repeated operations on multiple processors/cores on your computer (and there are other advantages as well)
@@ -39,6 +26,18 @@ library(frsdata)
 # library(doSNOW) ; library(foreach)  # parallel processing, efficient looping?
 # library(rgdal) ; library(maps) ; library(pdist) #?  # Geospatial tools
 # library(RMySQL) # only if loading data from SQL or using SQL for buffering as was tested in an alternative to getrelevantCensusBlocks...
+
+######################################################################################################## #
+############  Things needed only if running this Shiny app:############
+######################################################################################################## #
+
+library(shiny)
+library(frsdata)
+s_options <- EJAM::NAICS  # lazy loaded from this package as data, used in ui.R
+s_dropdown_naics <- c()
+options(shiny.maxRequestSize = 9*1024^2)
+server <- "127.0.0.1"
+# setwd("~")
 
 
 ############ PARAMETERS SPECIFIC TO USER OR SERVER ############
