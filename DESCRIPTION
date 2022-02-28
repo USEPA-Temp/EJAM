@@ -11,9 +11,9 @@ Description: Tools for summarizing environmental and demographic indicators (suc
     to provide very fast identification of nearby blocks, distances, and 
     aggregation of indicators within each distance.
     It can be uses as a web app, with the user interface provided by the shiny R package.
-Requires: data.table, foreach, blockdata, frsdata
-Imports: census2020download, DBI, RMySQL, SearchTrees, doSNOW,
-        sp, data.table, pdist
+Requires: foreach, blockdata, frsdata
+Imports: data.table, DBI, RMySQL, SearchTrees, doSNOW,
+        sp, pdist
 Depends: R (>= 3.5.0)
 License: MIT
 Encoding: UTF-8
