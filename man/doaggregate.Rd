@@ -25,7 +25,7 @@ This takes a set of facilities and the set of blocks that are near each,
  **** As currently written, this is hardcoded for specific indicators as the columns, indicators like pctlowinc.
  **** It should be made generic.
 
- As currently written, the code USES SOME VARIABLES THAT WERE ALREADY PUT INTO THE GLOBAL ENVIRONMENT
+  The code USES SOME VARIABLES THAT WERE ALREADY PUT INTO THE GLOBAL ENVIRONMENT
    SO THAT THEY ARE AVAILABLE FROM WITHIN ALL FUNCTIONS WITHOUT HAVING TO PASS THE DATA TO EACH FUNCTION THAT NEEDS IT.
   It sets,  env <- globalenv()
   ### The global environment .GlobalEnv, more often known as the user's workspace, is the first item on the search path.
@@ -34,8 +34,14 @@ This takes a set of facilities and the set of blocks that are near each,
   So, as currently written, this would require the following already be in the global environment,
  (until it may be recoded to have those passed to this function):
 
-   blockdata  data.table (335 MB as .rdata) with these columns: BLOCKID, BLOCKGROUPFIPS, STUSAB, STATE, COUNTY, TRACT, BLKGRP, BLOCK, POP100, HU100, Census2010Totalpop
-   blockgroupstats or blockgroupstats2020 - A data.table (such as EJSCREEN demographic and environmental data by blockgroup?)
+  This was a huge file and was removed from blockdata:: package which breaks doaggregate().
+   blockdata  data.table (335 MB as .rdata) with these columns: 
+     blockid, BLOCKGROUPFIPS, STUSAB,   BLKGRP, BLOCK, POP100, Census2010Totalpop 
+   **  CAN DROP THESE:  HU100, STATE COUNTY  TRACT BLKGRP BLOCK 
+   
+   blockgroupstats or newer name bgstats or maybe bgstats_ejscreen2 
+     - A data.table (such as EJSCREEN demographic and environmental data by blockgroup?)
+     
    statesshp   (a shapefile of state boundries to determine what state a point is in)
    stateregions  data.table lookup of EPA REGION given the ST (state code like AK)
 
@@ -45,7 +51,7 @@ This takes a set of facilities and the set of blocks that are near each,
      facilities
 
    Check which table has which column names, including columns with
-      Distance, statename?,  REGION etc.
+      distance, statename?,  REGION etc.
 
    Check if it includes Puerto Rico (no, that was dropped)
  }

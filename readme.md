@@ -9,8 +9,7 @@ Description: Uses quad trees, data.table, parallel processing - for very fast di
     Uses Census blocks and finds which ones are within specified distance of a facility or site at given lat/lon, 
     for each of a number of facilities or sites.
 Requires: data.table, foreach, blockdata, frsdata
-Imports: census2020download, DBI, RMySQL, SearchTrees, doSNOW, funprog,
-        sp, readr
+Imports: DBI, RMySQL, SearchTrees, doSNOW, funprog, sp, readr
 Depends: R (>= 3.5.0)
 License: MIT
 Encoding: UTF-8

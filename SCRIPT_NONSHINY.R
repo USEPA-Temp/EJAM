@@ -7,19 +7,19 @@ if (1 ==0) {
 
   # and note that right now batch.summarizer::ejscreenapi() is in that package not here
 
-  # and see  census2020download::blocks2020  for newer census data on blocks but may move to EJAM-Blockdata?
+  # and see package census2020download for 2020 census data on blocks 
 
   # and facilities_prep may be obsolete or should be done before save that as dataset and build a package.
 
 
-  # setup parameters, functions ####
-  # - get data by loading package and some constants etc.
+  # set up parameters, functions ####
   # includes library(EJAM) which provides datasets like blockgroupstats, facilities, etc.
-  library(blockdata) # may move it to EJAM-Census2020download
+  library(blockdata) # for 2010 data. 
   library(EJAM)
   library(data.table)
 
   CountCPU <- 2
+  CountCPU <- parallel::detectCores()
   indexgridsize <- 10  # This does not seem to be used ever - it is just used to create buffer_indexdistance which is not used.
 
   # can specify random test points (sites) ######
@@ -27,7 +27,7 @@ if (1 ==0) {
 
   sitepoints <- data.table::copy(EJAM::points100example)
   # sitepoints <- data.table::copy(EJAM::points100example)   # NOTE the first point is far outside the continental US and returns no data using census 2010 blocks.
-  sitepoints[ , siteid := .I]
+  sitepoints[ , siteid := .I] # .I JUST NUMBERS THE SITES
   data.table::setnames(sitepoints, 'LAT', 'lat')
   data.table::setnames(sitepoints, 'LONG', 'lon')
   data.table::setkey(sitepoints) #,  c('siteid', 'lat', 'lon'))
@@ -35,67 +35,43 @@ if (1 ==0) {
   # specify radius for circular buffer and other key parameters ####
 
   radius <- 1 # radius (miles)
-  maxcutoff <- 31.07 # 50 km  # max distance to expand search to (miles?)
-  avoidorphans <- TRUE  # Expand distance searched, when a facility has no census block centroid within selected buffer distance
-  uniqueonly <- FALSE    # TRUE = stats are for dissolved single buffer to avoid double-counting. FALSE = we want to count each person once for each site they are near.
-
-  ### IS THIS NEEDED? seems to be used only in the clustered version of getrelevant??
-  # localtree <- blockquadtree
-  #  localtree <- SearchTrees::createTree(blockdata::quaddata, treeType = "quad", dataType = "point")
-
-  # save.image('tempjunk.RData')
-
-  # blockdata[ , sum( , na.rm = TRUE), by = BLOCKGROUPFIPS]
-  # blockwts
-
+  maxcutoff <- 31.07 # 50 km  # max distance to expand search to, if avoidorphans=TRUE
+  avoidorphans <- TRUE  # Expand distance searched, when a facility has no census block centroid within selected buffer distance.
+  
+  uniqueonly <- FALSE   # The uniqueonly parameter will be removed from getrelevant... and handled in doaggregate() 
+  
+  # This must be done for each session - One cannot save it as .rda and just load via a pkg. 
+  localtree <- SearchTrees::createTree(blockdata::quaddata, treeType = "quad", dataType = "point")
+  
   # call function that finds nearby blocks  ####
-  localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
+  
   system.time({
     # results_by_site <- summarizeForFacilities(
-
-    # **** as written currently, presumes that other data are in global environment, ****
-    # **** especially it uses quaddata ****
-    sites2blocks <- getrelevantCensusBlocksviaQuadTree(
+    
+    sites2blocks <- EJAM::getrelevantCensusBlocksviaQuadTree(
       sitepoints =  sitepoints,
       cutoff = radius,
       maxcutoff = maxcutoff,
       uniqueonly = uniqueonly,
       avoidorphans = avoidorphans,
       quadtree = localtree
-
     )
-  }
-  )
-  # 1000 * 3600/13
-
-  # # call function that aggregates in each buffer  ####
+  })
+  
+  
+  ##  function that aggregates in each buffer  ####
   #
   # system.time(
   #
-  #   # **** as written currently, presumes that other data are in global environment, ****
-  #   # *** this uses blockdata and blockgroupstats ***
-  #
-  #   results_by_site <- doaggregate(sitepoints, results)
+  # results_by_site <- EJAM::doaggregate(facilities = sitepoints, facilityblocks = results) 
   # )
   #
   # # see results ####
   #
   # head(results_by_site)
 
-    # ej_api_results <- ejscreenapi(sitepoints$LONG[1:10], sitepoints$LAT[1:10], radius = 1)
-  #   #ej_api_results <- batch.summarizer::ejscreenapi(sitepoints$LONG, sitepoints$LAT, radius = 1)
-
-  #
-  # ej_api_results <- ej_api_results %>%
-  #   dplyr::relocate(
-  #     c(lon, lat),
-  #     .before = RAW_E_PM25
-  #   )
-  #
-  # ej_pop <- sum(as.numeric(ej_api_results$totalPop))
-  # ej_pop
-  #
-  # quadtree_pop <- sum(results$POP100)
-  # quadtree_pop
+  ## compare to results from EJSCREEN API 
+  #    
+  # ej_api_results <- batch.summarizer::ejscreenapi(sitepoints$LONG, sitepoints$LAT, radius = 1)
 
 }

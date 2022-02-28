@@ -5,7 +5,7 @@
 \title{Key buffering function - wrapper for other functions doing the work}
 \usage{
 getrelevantCensusBlocks(
-  facilities,
+  sitepoints,
   cutoff,
   maxcutoff,
   uniqueonly,
@@ -14,18 +14,18 @@ getrelevantCensusBlocks(
 )
 }
 \arguments{
-\item{facilities}{see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions}
+\item{sitepoints}{see \link{getrelevantCensusBlocksviaQuadTree} or other such functions}
 
-\item{cutoff}{see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions}
+\item{cutoff}{see \link{getrelevantCensusBlocksviaQuadTree} or other such functions}
 
-\item{maxcutoff}{see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions}
+\item{maxcutoff}{see \link{getrelevantCensusBlocksviaQuadTree} or other such functions}
 
-\item{uniqueonly}{see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions}
+\item{uniqueonly}{see \link{getrelevantCensusBlocksviaQuadTree} or other such functions}
 
-\item{avoidorphans}{see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions}
+\item{avoidorphans}{see \link{getrelevantCensusBlocksviaQuadTree} or other such functions}
 
 \item{...}{see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions}
 }
 \description{
-Key buffering function - wrapper for other functions doing the work
+As written it assumes that block location data file is already in global environment.
 }

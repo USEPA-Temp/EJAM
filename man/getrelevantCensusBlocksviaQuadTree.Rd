@@ -5,24 +5,26 @@
 \title{find nearby blocks using Quad Tree data structure for speed, NO PARALLEL PROCESSING}
 \usage{
 getrelevantCensusBlocksviaQuadTree(
-  facilities,
+  sitepoints,
   cutoff,
   maxcutoff,
-  uniqueonly,
+  uniqueonly = FALSE,
   avoidorphans,
-  tree
+  quadtree
 )
 }
 \arguments{
-\item{facilities}{data.table with columns LAT, LONG}
+\item{sitepoints}{data.table with columns siteid, lat, lon giving point locations of sites or facilities around which are circular buffers}
 
-\item{cutoff}{miles distance (check what this actually does)}
+\item{cutoff}{miles radius, defining circular buffer around site point}
 
-\item{maxcutoff}{miles distance (check what this actually does)}
+\item{maxcutoff}{miles distance (max distance to check? if not even 1 block point is within cutoff)}
 
-\item{uniqueonly}{logical}
+\item{uniqueonly}{logical WILL BE REMOVED AND DONE OUTSIDE THIS FUNCTION. default FALSE (may remove this param) Whether to retain only unique blocks (unique residents) to avoid double-counting (but we want to drop duplicates later, not in here)}
 
 \item{avoidorphans}{logical}
+
+\item{quadtree}{a quadtree object created from the SearchTree package example: SearchTrees::createTree(blockdata::quaddata, treeType = "quad", dataType = "point")}
 }
 \description{
 find nearby blocks using Quad Tree data structure for speed, NO PARALLEL PROCESSING

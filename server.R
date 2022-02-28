@@ -162,7 +162,11 @@ shinyServer(function(input, output, session) {
     get_unique = setUnique()     # reactive, TRUE = stats are for dissolved single buffer to avoid doublecounting. FALSE = we want to count each person once for each site they are near.
     avoidorphans = doExpandradius() # Expand distance searched, when a facility has no census block centroid within selected buffer distance
 
+    ## *** DOES localtree HAVE TO BE RECREATED EACH TIME dataLocationListProcessed REACTIVE UPDATES??
+    # SEEMS LIKE THAT WOULD BE EVERY TIME radius is updated, 
+    # but it is slow and only needs to happen once per session, right?
     localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
+    
     system.time({
       # note this does require that blockquadtree be available as data
       res <- getrelevantCensusBlocksviaQuadTree(sitepoints =  sitepoints,

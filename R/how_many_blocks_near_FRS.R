@@ -70,7 +70,7 @@ for (i in 1:(1000/10)) {
   }
 }
 outall <- cbind(outall, frsid=paste(outall[,'fromrow'], outall[,'chunk']))
-print('Average number of Census2020 blocks within 1 mile of FRS site')
+print('Average number of Census 2020 blocks within 1 mile of FRS site')
 mean(table(outall[,'frsid']))
 outall_1mile <- outall
 
@@ -121,7 +121,7 @@ for (i in 1:(1000/10)) {
   }
 }
 outall <- cbind(outall, frsid=paste(outall[,'fromrow'], outall[,'chunk']))
-print('Average number of Census2020 blocks within 3 miles of FRS site')
+print('Average number of Census 2020 blocks within 3 miles of FRS site')
 mean(table(outall[,'frsid']))
 outall_3mile <- outall
 

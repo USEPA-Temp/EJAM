@@ -7,7 +7,7 @@
 NAICS_find(
   query,
   matchonly = FALSE,
-  NAICS = ifelse(exists(NAICS), NAICS, NULL),
+  dataset = ifelse(exists(dataset), dataset, NULL),
   ignore.case = TRUE
 )
 }
@@ -16,7 +16,7 @@ NAICS_find(
 
 \item{matchonly}{default is FALSE which shows}
 
-\item{NAICS}{Should default to the dataset installed with this package. see \link{NAICS}}
+\item{dataset}{Should default to the dataset NAICS, installed with this package. see \link{NAICS}}
 
 \item{ignore.case}{default TRUE, ignoring whether query is upper or lower case}
 }
@@ -25,7 +25,8 @@ Just a utility, quick way to view NAICS industrial sectors that contain queried 
 but can also see all the subcategories within the matching one.
 }
 \details{
-NOTE: By default, this shows the highest level category (smallest number of digits in NAICS, like 2 or 3)
+See \url{https://www.census.gov/naics/}
+ NOTE: By default, this shows the highest level category (smallest number of digits in NAICS, like 2 or 3)
  that matches (contains) the query via grep(),
  and also shows all the children categories (subcategories within that category).
  By default, it does NOT only show the entries that match the query.
@@ -34,8 +35,8 @@ NOTE: By default, this shows the highest level category (smallest number of digi
  because 3256 matches 'soap' and 325612 is a subcategory of 3256.
 }
 \examples{
- NAICS_find('pulp')
- NAICS_find('paper')
+ #NAICS_find('pulp')
+ #NAICS_find('paper')
 }
 \seealso{
 \link{NAICS_categories} \link{NAICS}

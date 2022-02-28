@@ -5,8 +5,11 @@
 #' @export
 #'
 sum_pctlanguage <- function(data) {
-  # works for the initial records subres <- data[hhlds!=0, j = list(pctlingiso =  ifelse(is.na(as.double(mean(pctlingiso))), as.double(NA) , sum(100*scoringweight*hhlds*pctlingiso, na.rm = TRUE)/sum(hhlds*scoringweight, na.rm = TRUE))), by = ID]
-  #subres <- data[hhlds!=0, j = list(pctlingiso =  ifelse(is.na(as.double(mean(pctlingiso))), as.double(NA), sum(100*scoringweight*hhlds*pctlingiso, na.rm = TRUE)/sum(hhlds*scoringweight, na.rm = TRUE))), by = ID]
+  # works for the initial records 
+  # subres <- data[hhlds!=0, j = list(pctlingiso =  ifelse(is.na(as.double(mean(pctlingiso))), as.double(NA) , sum(100*scoringweight*hhlds*pctlingiso, na.rm = TRUE)/sum(hhlds*scoringweight, na.rm = TRUE))), 
+  # by = ID]
+  #subres <- data[hhlds!=0, j = list(pctlingiso =  ifelse(is.na(as.double(mean(pctlingiso))), as.double(NA), sum(100*scoringweight*hhlds*pctlingiso, na.rm = TRUE)/sum(hhlds*scoringweight, na.rm = TRUE))), 
+  # by = ID]
 
   # *** I do not understand this adjustment process.
 

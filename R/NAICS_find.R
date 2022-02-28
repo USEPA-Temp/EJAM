@@ -20,8 +20,8 @@
 #'
 #' @seealso  \link{NAICS_categories} \link{NAICS} 
 #' @examples
-#'  NAICS_find('pulp')
-#'  NAICS_find('paper')
+#'  #NAICS_find('pulp')
+#'  #NAICS_find('paper')
 #' @export
 #'
 NAICS_find <- function(query, matchonly=FALSE, dataset=ifelse(exists(dataset),dataset,NULL), ignore.case=TRUE) {

@@ -43,7 +43,7 @@ cleanoutput <- function(finaldata,filename) {
      "inedx_EJ_proximity.tsdf","inedx_EJ_proximity.rmp","inedx_EJ_proximity.npl","inedx_EJ_proximity.npdes",
     #    could change those but the batch sum lookup name changer can handle these now for 2016
 
-    "BLOCKID","buff","BLOCKGROUPFIPS",
+    "blockid","buff","BLOCKGROUPFIPS",
     "stabbr","statename","COUNTY","TRACT","BLKGRP","BLOCK","region",
 
     # NATIONAL demog and env percentiles etc

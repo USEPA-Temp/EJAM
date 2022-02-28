@@ -5,7 +5,7 @@
 \title{Wrapper for other functions doing the work}
 \usage{
 summarizeForFacilities(
-  facilities,
+  sitepoints,
   cutoff,
   maxcutoff,
   uniqueonly,
@@ -14,7 +14,7 @@ summarizeForFacilities(
 )
 }
 \arguments{
-\item{facilities}{see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions}
+\item{sitepoints}{see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions}
 
 \item{cutoff}{see \link{getrelevantCensusBlocksviaQuadTree_Clustered} or other such functions}
 

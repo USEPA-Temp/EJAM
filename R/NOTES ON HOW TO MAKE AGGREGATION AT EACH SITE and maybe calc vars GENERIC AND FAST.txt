@@ -1,101 +1,6 @@
 if (1 ==0 ) {
 
-
-
-see EJAM-package.R for names of data files needed and column names.
-
-
-
-fix LFS for github migrate my files to that or shrink them
-
-push to EJAM
-
-----------------------------------------------------------------------------
- optimizing memory use in blocks tables:
-
-  # blockid is more memory efficient than blockfips, 
-  # Keeping just bgid and dropping bgfips is an idea, but then bgstats has to have bgid too, 
-  # and it is easier to have bgstats use just bgfips?
-
-Start updating to Census 2020 by starting with blocks2020 and 
-then Create large dt temporarily with 
- blockfips, blockid,  bgfips, bgid,  pop,  blockwts,  lat, lon
-Then save parts of it as separate .rda files, as precalculated preloaded data.
-----------------------------------------------------------------------------
-
-how to optimize speed/memory for aggregation, doaggregate2:
-
-
-BUFFER STATS FOR COUNTS:
-Population total in a buffer or any other count-based indicator is just the pop wtd sum - the weighting just accounts for some blockgroups being only partly inside a buffer. If all the blocks of an entire bg is in a buffer, those weights add up to 1. So the formula for counts is just 
-
-  sitescore = sum( blockwt * bgscorecolumns)  
-    where bgscore is indicator value in parent blockgroup.
-
-Question: When to join the 200 or so bgstats columns to the other info? From easiest but wasteful, to complicated code:
-a - add 200 columns to the full 8m (or only 5m populated) blocks in blockwts table, or
-b - add 200 columns to the maybe <1m or 100k blocks nearby, in blocks2sites table, [10x-100x fewer rows] or
-c - add 200 columns to the maybe 300k or 30k bg nearby, in bg2sites intermediate step [another 30x fewer rows] (assuming 25-50 blocks/bg, maybe 30 in typical sites?)
-... 
-I think we can try the middle one? or data.table might make it chain together easily without copying a lot?
-- join some rows of 6-8 m row blockwts to ~1m rows table blocks2sites based on the blockfips in maybe 1m rows blocks2sites to get 1m rows + 1 new col
-- join of bgstats to blocks2sites, 
-- sitemeans <- wtdmeans of 200 cols, by siteid
-
-If we make copies of approx 200 bgscores for each block nearby (100k?? to 1mill??), and 
-then would do this which wastes ram:
-  sitescore =  lapply over all bgstatscols,   sum(blockwt * bgscorecolumns), by siteid] 
-
-
-    BUT, it saves space and not sure if slower, to do 2 steps... 
-
-
-1) aggregate all blocks in a blockgroup in a siteid ***  #######################################
-
-
-  making a copy here since it is an aggregation, fewer rows (still need to ??) 
-
-RESULTS OF getrelevant is   sites2blocks[ , .(siteid, BLOCKID, Distance)]
-
-blockwts[sites2blocks, on=.(BLOCKID), 
-
-sites2bg <- sites2blocks[ , bgwt = sum( blockwts, na.rm=T), by =.(siteid, bgid)]
- 
-rm(sites2blocks) # unless need save that to analyze distance distribution 
- 
- # so all blocks in a bg are aggregated
- # so result is only maybe 30k-300k rows?  
-
-
-2)  then JOIN that medium-sized intermed table to bgstats   #######################################
-
-
-sites[bgstats]  ???  think how to do join...
-
-countcols <- c('pop', 'lowinc')
-meancols <- c(names.e, names.d, names.ej) # we want the raw scores only for EJ and E, or pct only for demog.
-
-sites[ , lapply(.SD, site_means := function(bgscores) sum(bgwtsbysite * bgscores, na.rm=T) / sum(bgwtsbysite,na.rm=T), by siteid, .SDcols = meancols]
-
-sites[ , lapply(.SD, site_sums  := function(bgscores) sum(bgwtsbysite * bgscores, na.rm=T),                            by siteid, .SDcols = countcols]  
-
-   #######################################   #######################################
-   
-doaggregate2 <- function(site2block_DT, blockwts_DT, bgcountvars_DT, bgpctvars_DT,bgpop_DT, bgstats_DT) {
-  
-  
-
-blockwts[blocks2stats, ] 
-is a join, looking up blockwts rows using blocks2stats key as an index.
--------------------------
-dt[, paste0(cols, "_m") := lapply(.SD, mean), .SDcols = cols]
-# applies a function to specified columns and assign the result with suffixed variable names to the original data.
-# but i don't need to rename the indicators actually.
-
-
-results_by_site <- 0
-
-
+see EJAM-package.R and doaggregate 
 
 NOTE ON BUFFER STATS AS POPWTD MEANS VS OTHERWTD MEANS VS RECALCULATED FROM AGGREGATED COUNTS:
 If the numerator and denominator of some %-style indicator are available as counts by bg, then one could recalculate per site once counts were summed per site... but that is not what EJSCREEN reports seem to do... they take pop weighted means of all raw score indicators (raw, meaning not expressed as percentiles) regardless of whether pop was the true denominator of that pct (it is not for some ejscreen pcts), which is probably OK, and we want to replicate EJSCREEN? But then it will not replicate some other GIS analyses that actually did it more correctly and calculated overall percents from the aggregated, overall counts! The recalculation method requires providing the formulas for the calculated variables to ensure correct denominators, etc. 
@@ -109,20 +14,13 @@ The raw score is found for a buffer and then that is looked up in a percentile l
       raw envt scores like pm2.5 concentration,
       
       raw EJ indexes are NOT needed if recalculated 
-
-
-
-
-------------------------------------
+-------------
 
     but possibly want to keep flexibility to use other weights than pop 
   (such as for percent low income, pre1960 units, linguistic isolation of hhld, whose denominators are households, built units, age25up, those with known poverty ratio)
-  or instead of doing wtd means for those with correct denominators having to be specified,
+  or 
+  instead of doing wtd means for those with correct denominators having to be specified,
   could just sum the count variables and specify the whole formula to apply once per site per correct denominator. 
-sum of count_scores, for each col of scores, by site
-
------------------------------------------
-
 ################################################
 # general notes on R and data.table package
 ################################################
@@ -139,34 +37,28 @@ DATA TABLE - UPDATE BY REFERENCE TO AVOID COPIES:
 
 General note on data.table and making copies vs just updating by reference:
 https://stackoverflow.com/questions/10225098/understanding-exactly-when-a-data-table-is-a-reference-to-vs-a-copy-of-another
-
-Use setattr set and :=
-to avoid making huge copies.
-
+#
 Be careful about supposedly assigning a data.table as if you thought a copy were being made:
 dtalias <- dt  
 because they are both aliases for the same actual object in memory
 so subsequently  altering dt also alters dtalias!
-
+#
  Also, if you pass dt to a function then the function does not have to return(dt) ! 
  the function's side effect  will alter the original dt back in the calling environment!! 
  simply via any changes by ref to dt  inside the function passed dt  like  f(dt) 
-
+#
 Since [.data.table incurs overhead to check the existence and type of arguments (for example), set() provides direct (but less flexible) assignment by reference with low overhead, appropriate for use inside a for loop. See examples. := is more powerful and flexible than set() because := is intended to be combined with i and by in single queries on large datasets.
 
-see
-https://rstudio-education.github.io/hopr/modify.html 
+
+see   https://rstudio-education.github.io/hopr/modify.html 
+
 
 COLLAPSE: 
-
 Even faster than data.table in some scenarios, is new package called collapse
 install.packages("collapse")
 library(collapse)
-
 help('collapse-documentation')
-
 fmean()
-
 ??num_vars
 
 ################################################

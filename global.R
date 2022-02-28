@@ -43,7 +43,8 @@ server <- "127.0.0.1"
 ############ PARAMETERS SPECIFIC TO USER OR SERVER ############
 
 # these probably should get passed as user-specified parameters to functions with default values, rather than putting them in a script
-CountCPU <- 2
+# CountCPU <- 2
+CountCPU <- parallel::detectCores() # this only matters if using getrelevantCensusBlocksviaQuadTree_Clustered 
 indexgridsize <- 10  # need to confirm if and how this grid is actually used
 translate_fieldnames <- TRUE # may depend on dataset - this is about whether to rename the columns to friendlier variable names in init.getdata.R
 

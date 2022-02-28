@@ -22,7 +22,7 @@
 #' @param sitepoints data.table with columns siteid, lat, lon giving point locations of sites or facilities around which are circular buffers
 #' @param cutoff miles distance (check what this actually does)
 #' @param maxcutoff miles distance (check what this actually does)
-#' @param uniqueonly logical WILL BE REMOVED AND DONE OUTSIDE THIS FUNCTION. default FALSE (may remove this param) Whether to retain only unique blocks (unique residents) to avoid double-counting (but we want to drop duplicates later, not in here)
+#' @param uniqueonly logical WILL BE REMOVED AND DONE apart from THIS FUNCTION. default FALSE (may remove this param) Whether to retain only unique blocks (unique residents) to avoid double-counting (but we want to drop duplicates later, not in here)
 #' @param avoidorphans logical
 #'
 #' @seealso \link{getrelevantCensusBlocksviaQuadTree2}  \link{computeActualDistancefromSurfacedistance}
@@ -61,8 +61,8 @@ getrelevantCensusBlocksviaQuadTree2 <- function(sitepoints, cutoff=1, maxcutoff=
   #---- Get ready for loop here ----
   #allocate result list
   nRowsDf <- NROW(f2)
-  res <- vector('list', nRowsDf)  # list of data.frames?  cols will be BLOCKID, distance, siteid
-  result <- data.frame() # cols will be BLOCKID, distance, siteid
+  res <- vector('list', nRowsDf)  # list of data.frames?  cols will be blockid, distance, siteid
+  result <- data.frame() # cols will be blockid, distance, siteid
   #these are now outside the loop, so they can be used in the vectorized way
   coords <- f2[ , .(FAC_X, FAC_Z)] 
   x_low <- coords[ , FAC_X] -truedistance;
@@ -79,11 +79,11 @@ getrelevantCensusBlocksviaQuadTree2 <- function(sitepoints, cutoff=1, maxcutoff=
     if ((i %% 100) == 0) {print(paste("Cells currently processing: ",i," of ", nRowsDf) ) }
     
     
-    
-    vec <- SearchTrees::rectLookup(blockdata::blockquadtree, unlist(c(x_low[i, ], z_low[i, ])), unlist(c(x_hi[i, ], z_hi[i, ]))) # blockquadtree  here but localtree in clustered version of function
+    vec <- SearchTrees::rectLookup(blockdata::blockquadtree, unlist(c(x_low[i, ], z_low[i, ])), unlist(c(x_hi[i, ], z_hi[i, ]))) 
+    # blockquadtree  here but localtree in clustered version of function
     
     tmp <- blockdata::quaddata[vec, ]
-    x <- tmp[ , .(BLOCK_X, BLOCK_Y, BLOCK_Z)] # but not BLOCKID ?? 
+    x <- tmp[ , .(BLOCK_X, BLOCK_Y, BLOCK_Z)] # but not blockid ?? 
     y <- f2[i, c('FAC_X','FAC_Y','FAC_Z')]  # the similar clustered function uses facilities2use 
     distances <- as.matrix(pdist::pdist(x, y))
     
@@ -92,7 +92,7 @@ getrelevantCensusBlocksviaQuadTree2 <- function(sitepoints, cutoff=1, maxcutoff=
     tmp[ , siteid := f2[i , .(siteid)]]  # the similar clustered function uses facilities2use 
     
     #filter actual distance
-    tmp <- tmp[distance <= truedistance, .(BLOCKID, distance, siteid)]
+    tmp <- tmp[distance <= truedistance, .(blockid, distance, siteid)]
     
     # hold your horses, what if there are no blocks and you are supposed to avoid that
     if ( avoidorphans && (nrow(tmp)) == 0) {
@@ -111,7 +111,7 @@ getrelevantCensusBlocksviaQuadTree2 <- function(sitepoints, cutoff=1, maxcutoff=
       
       #filter to max distance
       truemaxdistance <- computeActualDistancefromSurfacedistance(maxcutoff)
-      tmp <- tmp[distance <= truemaxdistance, .(BLOCKID, distance, siteid)]
+      tmp <- tmp[distance <= truemaxdistance, .(blockid, distance, siteid)]
       res[[i]] <- tmp # saving results as a list of tables to rbind after loop; old code did rbind for each table, inside loop 
     } else {
       res[[i]] <- tmp
@@ -124,15 +124,15 @@ getrelevantCensusBlocksviaQuadTree2 <- function(sitepoints, cutoff=1, maxcutoff=
   # and later they can also be used to get aggregated stats for all unique blocks (residents) among all the sites as a whole.
   if ( uniqueonly) {
     stop('will be recoded to allow this removal of duplicate blocks (residents) only outside this getrelevant... function')
-    data.table::setkey(result, "BLOCKID", "distance", "siteid")
-    result <- data.table::unique(result, by=c("BLOCKID"))
+    data.table::setkey(result, "blockid", "distance", "siteid")
+    result <- data.table::unique(result, by=c("blockid"))
   }
   
   print(paste0(nRowsDf, ' input sites'))
   print(paste0(data.table::uniqueN(result, by = 'siteid'), ' output sites (got results)'))
   bcount <- data.table::uniqueN(result)
   print(paste0(bcount, " blocks in final row count (block-to-site pairs)" ))
-  bcount_unique <- data.table::uniqueN(result, by = 'BLOCKID')
+  bcount_unique <- data.table::uniqueN(result, by = 'blockid')
   print(paste0(bcount_unique , ' unique blocks'))
   print(paste0(round(bcount / nRowsDf, 0), ' blocks per site, on average'))
   print(paste0(round(1 - (bcount_unique / bcount), 2), '% of blocks are duplicates because those residents are near two or more sites'))

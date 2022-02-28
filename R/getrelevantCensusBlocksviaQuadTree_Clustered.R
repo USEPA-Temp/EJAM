@@ -118,7 +118,7 @@ facilities <- facilities[!is.na(facilities$LAT) & !is.na(facilities$LONG), ]
       # tmp[,ID := facilities2use[i, .(ID)]]
 
       # #filter actual distance
-      # tmp <- tmp[distance <= truedistance, .(BLOCKID, distance, ID)]
+      # tmp <- tmp[distance <= truedistance, .(blockid, distance, ID)]
 
       #hold your horses, what if there are no blocks and you are supposed to avoid that
       # && (nrow(tmp))==0
@@ -139,7 +139,7 @@ facilities <- facilities[!is.na(facilities$LAT) & !is.na(facilities$LONG), ]
 
         #filter to max distance
         truemaxdistance <- computeActualDistancefromSurfacedistance(maxcutoff)
-        tmp <- tmp[distance<=truemaxdistance, .(BLOCKID, distance,ID)]
+        tmp <- tmp[distance<=truemaxdistance, .(blockid, distance,ID)]
         partialres[[i]] <- tmp
       } else {
         partialres[[i]] <- tmp
@@ -153,8 +153,8 @@ facilities <- facilities[!is.na(facilities$LAT) & !is.na(facilities$LONG), ]
 
   print(paste("Total Rowcount: ",nrow(bound)) )
   if ( uniqueonly) {
-    data.table::setkey(bound, "BLOCKID","distance","ID")
-    bound <- unique(bound, by=c("BLOCKID"))
+    data.table::setkey(bound, "blockid","distance","ID")
+    bound <- unique(bound, by=c("blockid"))
   }
   print(paste("Final Rowcount: ",nrow(bound)) )
   # is this from parallel or snow package?

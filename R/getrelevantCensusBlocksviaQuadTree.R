@@ -5,8 +5,8 @@
 #' @details  Uses indexgridsize and quaddata  variables that come from global environment (but should pass to this function rather than assume in global env?)
 #'
 #' @param sitepoints data.table with columns siteid, lat, lon giving point locations of sites or facilities around which are circular buffers
-#' @param cutoff miles distance (check what this actually does)
-#' @param maxcutoff miles distance (check what this actually does)
+#' @param cutoff miles radius, defining circular buffer around site point 
+#' @param maxcutoff miles distance (max distance to check? if not even 1 block point is within cutoff)
 #' @param uniqueonly logical WILL BE REMOVED AND DONE OUTSIDE THIS FUNCTION. default FALSE (may remove this param) Whether to retain only unique blocks (unique residents) to avoid double-counting (but we want to drop duplicates later, not in here)
 #' @param avoidorphans logical
 #' @param quadtree a quadtree object created from the SearchTree package example: SearchTrees::createTree(blockdata::quaddata, treeType = "quad", dataType = "point")
@@ -71,7 +71,7 @@ for (i in 1:nRowsDf) {
     vec <- SearchTrees::rectLookup(quadtree, unlist(c(x_low,z_low)), unlist(c(x_hi,z_hi)))
 
     tmp <- blockdata::quaddata[vec, ] 
-    x <- tmp[ , .(BLOCK_X, BLOCK_Y, BLOCK_Z)] # but not BLOCKID ?? 
+    x <- tmp[ , .(BLOCK_X, BLOCK_Y, BLOCK_Z)] # but not blockid , blockid /  blockfips?? 
     y <- sitepoints[i, c('FAC_X','FAC_Y','FAC_Z')]  # the similar clustered function uses sitepoints2use not sitepoints
     distances <- as.matrix(pdist::pdist(x,y))
 
@@ -80,7 +80,7 @@ for (i in 1:nRowsDf) {
     tmp[ , siteid := sitepoints[i, .(siteid)]]  # the similar clustered function uses sitepoints2use not sitepoints
 
     #filter actual distance
-    tmp <- tmp[distance <= truedistance, .(BLOCKID, distance, siteid)]
+    tmp <- tmp[distance <= truedistance, .(blockid, distance, siteid)]
 
     # hold your horses, what if there are no blocks and you are supposed to avoid that
     if ( avoidorphans && (nrow(tmp))==0 ){
@@ -98,7 +98,7 @@ for (i in 1:nRowsDf) {
 
       #filter to max distance
       truemaxdistance <- computeActualDistancefromSurfacedistance(maxcutoff)
-      tmp <- tmp[distance <= truemaxdistance, .(BLOCKID, distance, siteid)]
+      tmp <- tmp[distance <= truemaxdistance, .(blockid, distance, siteid)]
       result <- rbind(result, tmp)
     } else {
       result <- rbind(result, tmp)
@@ -112,14 +112,14 @@ for (i in 1:nRowsDf) {
   if ( uniqueonly) {
     stop('will be recoded to allow this removal of duplicate blocks (residents) only outside this getrelevant... function')
     data.table::setkey(result) #  uses all columns as keys 
-    result <- unique(result, by=c("BLOCKID")) # unique values of that specified column
+    result <- unique(result, by=c("blockid")) # unique values of that specified column
   }
   
   print(paste0(nRowsDf, ' input sites'))
   print(paste0(data.table::uniqueN(result, by = 'siteid'), ' output sites (got results)'))
   bcount <- data.table::uniqueN(result)
   print(paste0(bcount, " blocks in final row count (block-to-site pairs)" ))
-  bcount_unique <- data.table::uniqueN(result, by = 'BLOCKID')
+  bcount_unique <- data.table::uniqueN(result, by = 'blockid')
   print(paste0(bcount_unique , ' unique blocks'))
   print(paste0(round(bcount / nRowsDf, 0), ' blocks per site, on average'))
   print(paste0(round(1 - (bcount_unique / bcount), 2), '% of blocks are duplicates because those residents are near two or more sites'))
