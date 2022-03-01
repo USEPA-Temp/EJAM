@@ -1,5 +1,5 @@
-create_bgstats2020 <- function() {
-  ## script to create bgstats2020.rda
+create_blockgroupstats <- function() {
+  ## script to create blockgroupstats.rda
   
   b2 <- ejscreen::bg20 # EJAM::blockgroupstats) # work with it as a data.frame not data.table until a later step
   # drop the bin number for percentiles, which just tells what decile except 10 is 90-95th pctile and bin 11 is 95-100, like ejscreen orange and red map colors in choropleths 
@@ -38,13 +38,13 @@ create_bgstats2020 <- function() {
   
   # setdiff(names(ejscreen::bg20), names(b2) )
   # setdiff(names(b2) ,names(ejscreen::bg20))
-  bgstats2020 <- b2
-  data.table::setDT(bgstats2020, key = 'bgfips') # by reference only
-  # bgstats2020 <- data.table::data.table(bgstats2020, key = 'bgfips') # makes a copy
+  blockgroupstats <- b2
+  data.table::setDT(blockgroupstats, key = 'bgfips') # by reference only
+  # blockgroupstats <- data.table::data.table(blockgroupstats, key = 'bgfips') # makes a copy
   rm(b2); rm(subgroups);rm(dropping)
   
-  invisible(bgstats2020)
-  # bgstats2020 uses 116 MB according to tables()
+  invisible(blockgroupstats)
+  # blockgroupstats uses 116 MB according to tables()
   # without the race eth subgroups it was just 87 MB !
-  # saveRDS(bgstats2020, file = './data/bgstats2020.rda')
+  # saveRDS(blockgroupstats, file = './data/blockgroupstats.rda')
 }

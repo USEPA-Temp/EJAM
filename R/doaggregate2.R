@@ -16,7 +16,7 @@
 #'    # INTPTLAT, INTPTLON, BLOCK_LAT_RAD, BLOCK_LONG_RAD  BLOCK_X   BLOCK_Y  BLOCK_Z ID GRID_X GRID_Y GRID_Z 
 #'    # old names: blockid, BLOCKGROUPFIPS, STUSAB, STATE, COUNTY, TRACT, BLKGRP, BLOCK, POP100, HU100, Census2010Totalpop
 #'    
-#'    blockgroupstats or blockgroupstats2020 - A data.table (such as EJSCREEN demographic and environmental data by blockgroup?)
+#'    blockgroupstats - A data.table (such as EJSCREEN demographic and environmental data by blockgroup?)
 #'    statesshp   (a shapefile of state boundries to determine what state a point is in)
 #'    stateregions  data.table lookup of EPA REGION given the ST (state code like AK)
 #'
@@ -71,7 +71,7 @@ doaggregate2 <- function(sites2blocks, ...) {
   data.table::setkey(sites2blocks, 'blockfips', 'siteid')
   
   # but need blockid, not fips.   *********************  THIS IS SLOW:
-  # sites2blocks2 <- merge(blockdata::blockid2fips, sites2blocks, by='blockfips', all.x=FALSE, all.y=TRUE)
+  # sites2blocks***** <- merge(blockdata::blockid2fips, sites2blocks, by='blockfips', all.x=FALSE, all.y=TRUE)
   sites2blocks$blockid <- blockdata::blockid2fips[sites2blocks, .(blockid), on='blockfips']
   sites2blocks[,blockfips := NULL]
   data.table::setkey(sites2blocks, 'blockid', 'siteid')
@@ -112,7 +112,7 @@ doaggregate2 <- function(sites2blocks, ...) {
   
   
   
-  # 2) *** JOIN *** the midsized intermed table to bgstats   ################################
+  # 2) *** JOIN *** the midsized intermed table to blockgroupstats   ################################
   
   # Notes on using variable with list of colnames, to 
   # apply function to specified columns and 

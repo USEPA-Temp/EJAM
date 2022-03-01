@@ -30,7 +30,7 @@ This updated 2022 code takes a set of facilities and the set of blocks that are 
    # INTPTLAT, INTPTLON, BLOCK_LAT_RAD, BLOCK_LONG_RAD  BLOCK_X   BLOCK_Y  BLOCK_Z ID GRID_X GRID_Y GRID_Z 
    # old names: blockid, BLOCKGROUPFIPS, STUSAB, STATE, COUNTY, TRACT, BLKGRP, BLOCK, POP100, HU100, Census2010Totalpop
    
-   blockgroupstats or blockgroupstats2020 - A data.table (such as EJSCREEN demographic and environmental data by blockgroup?)
+   blockgroupstats - A data.table (such as EJSCREEN demographic and environmental data by blockgroup?)
    statesshp   (a shapefile of state boundries to determine what state a point is in)
    stateregions  data.table lookup of EPA REGION given the ST (state code like AK)
 

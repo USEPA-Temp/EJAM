@@ -19,28 +19,6 @@
 #'   ### The global environment .GlobalEnv, more often known as the user's workspace, is the first item on the search path.
 #'   It can also be accessed by globalenv().
 #'
-#'   So, as currently written, this would require the following already be in the global environment,
-#'  (until it may be recoded to have those passed to this function):
-#'
-#'   This was a huge file and was removed from blockdata:: package which breaks doaggregate().
-#'    blockdata  data.table (335 MB as .rdata) with these columns: 
-#'      blockid, BLOCKGROUPFIPS, STUSAB,   BLKGRP, BLOCK, POP100, Census2010Totalpop 
-#'    **  CAN DROP THESE:  HU100, STATE COUNTY  TRACT BLKGRP BLOCK 
-#'    
-#'    blockgroupstats or newer name bgstats or maybe bgstats_ejscreen2 
-#'      - A data.table (such as EJSCREEN demographic and environmental data by blockgroup?)
-#'      
-#'    statesshp   (a shapefile of state boundries to determine what state a point is in)
-#'    stateregions  data.table lookup of EPA REGION given the ST (state code like AK)
-#'
-#'    So far, only these are passed to the function rather than being already in the global envt:
-#'
-#'      facilityblocks - passed to the function
-#'      facilities
-#'
-#'    Check which table has which column names, including columns with
-#'       distance, statename?,  REGION etc.
-#'
 #'    Check if it includes Puerto Rico (no, that was dropped)
 #'  }
 #'

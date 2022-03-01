@@ -87,12 +87,12 @@ National_Demographic_Index <- (weighted.mean(EJAM::blockgroupstats$pctmin, EJAM:
 
 # comparing ways of calculating national overall avg of us pctlowinc and us pctmin:
 #
-#  pctlowinc.us.popwtd <- weighted.mean(blockgroupstats2020$pctlowinc, blockgroupstats2020$pop, na.rm = TRUE)
-#  pctmin.us.popwtd    <- weighted.mean(blockgroupstats2020$pctmin,    blockgroupstats2020$pop, na.rm = TRUE)
-#  pctlowinc.us.careful <- sum(blockgroupstats2020$lowinc, na.rm = TRUE) / sum(blockgroupstats2020$povknownratio, na.rm = TRUE)
-#  pctmin.us.careful    <- sum(blockgroupstats2020$mins,   na.rm = TRUE) / sum(blockgroupstats2020$pop,           na.rm = TRUE)
+#  pctlowinc.us.popwtd <- weighted.mean(blockgroupstats$pctlowinc, blockgroupstats$pop, na.rm = TRUE)
+#  pctmin.us.popwtd    <- weighted.mean(blockgroupstats$pctmin,    blockgroupstats$pop, na.rm = TRUE)
+#  pctlowinc.us.careful <- sum(blockgroupstats$lowinc, na.rm = TRUE) / sum(blockgroupstats$povknownratio, na.rm = TRUE)
+#  pctmin.us.careful    <- sum(blockgroupstats$mins,   na.rm = TRUE) / sum(blockgroupstats$pop,           na.rm = TRUE)
 #
-#  vsi.us.popwtd.vsi <- weighted.mean(blockgroupstats2020$VSI.eo, blockgroupstats2020$pop, na.rm = TRUE)
+#  vsi.us.popwtd.vsi <- weighted.mean(blockgroupstats$VSI.eo, blockgroupstats$pop, na.rm = TRUE)
 #  vsi.us.popwtd.each <- mean(c( pctlowinc.us.popwtd,  pctmin.us.popwtd),  na.rm = TRUE)
 #  vsi.us.careful     <- mean(c( pctlowinc.us.careful, pctmin.us.careful), na.rm = TRUE)
 #

@@ -26,6 +26,8 @@
 #'   
 #'   column names include bgfips, pop, pctlowinc, pcthisp, etc.
 #'   
-#' @seealso \link{create_bgstats2020}    
+#'   See notes on cleaning up and changing the dataset starting from ejscreen::bg20 or bg21
+#'   
+#' @seealso \link{create_blockgroupstats}
 #'   
 NULL

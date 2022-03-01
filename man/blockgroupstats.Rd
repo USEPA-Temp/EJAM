@@ -27,7 +27,9 @@ NOTE: It also has the race/ethnic subgroups that add up to minority or people of
   See \url{https:\\www.epa.gov\ejscreen}
   
   column names include bgfips, pop, pctlowinc, pcthisp, etc.
+  
+  See notes on cleaning up and changing the dataset starting from ejscreen::bg20 or bg21
 }
 \seealso{
-\link{create_bgstats2020}
+\link{create_blockgroupstats}
 }
