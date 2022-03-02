@@ -124,9 +124,10 @@ getrelevantCensusBlocksviaQuadTree2 <- function(sitepoints, cutoff=1, maxcutoff=
   # and later they can also be used to get aggregated stats for all unique blocks (residents) among all the sites as a whole.
   if ( uniqueonly) {
     stop('will be recoded to allow this removal of duplicate blocks (residents) only outside this getrelevant... function')
-    data.table::setkey(result, "blockid", "distance", "siteid")
+    data.table::setkey(result, "blockid", "siteid", "distance") # not sure why that was here
     result <- data.table::unique(result, by=c("blockid"))
   }
+  data.table::setkey(result, "blockid", "siteid", "distance")
   
   print(paste0(nRowsDf, ' input sites'))
   print(paste0(data.table::uniqueN(result, by = 'siteid'), ' output sites (got results)'))

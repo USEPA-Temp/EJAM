@@ -114,6 +114,7 @@ for (i in 1:nRowsDf) {
     data.table::setkey(result) #  uses all columns as keys 
     result <- unique(result, by=c("blockid")) # unique values of that specified column
   }
+  data.table::setkey(result, "blockid", "siteid", "distance")
   
   print(paste0(nRowsDf, ' input sites'))
   print(paste0(data.table::uniqueN(result, by = 'siteid'), ' output sites (got results)'))

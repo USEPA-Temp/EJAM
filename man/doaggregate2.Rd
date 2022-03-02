@@ -4,7 +4,13 @@
 \alias{doaggregate2}
 \title{Summarize indicators in each buffer (given the blocks in each buffer and indicators for each block)}
 \usage{
-doaggregate2(sites2blocks, ...)
+doaggregate2(
+  sites2blocks,
+  countcols = NULL,
+  popmeancols = NULL,
+  calculatedcols = NULL,
+  ...
+)
 }
 \arguments{
 \item{sites2blocks}{data.table of distances in miles between all sites (facilities) and 

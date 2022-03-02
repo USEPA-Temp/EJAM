@@ -57,6 +57,13 @@ if (1 ==0) {
       quadtree = localtree
     )
   })
+  # > head(sites2blocks)
+  #    blockid  distance siteid
+  # 1:  388798 0.9879380     29
+  # 2:  388799 0.8800507     29
+  # 3:  388809 0.6421582     29
+  
+  
   
   
   ##  function that aggregates in each buffer  ####

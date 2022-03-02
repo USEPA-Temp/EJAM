@@ -94,21 +94,27 @@ if (1 == 0 ) {
   # if keeping it by siteid, then retain duplicate blockids, and can roll up to bg level but some blocks and some bg are near 2+ siteid, 
   # so make sure that is accounted for... 
   
-  # I wrote code for that already elsewhere in doaggregate2 version not pushed??
   
-  # MAYBE????  sites2blocks[blockwts, bgwt := sum(blockwt , na.rm = TRUE), on = .(blockid), by = .(bgfips)] 
+    # when aggr bgs by siteid, also need to weight this way:  bgwt*pop 
   
-  # when aggr bgs by siteid, also need to weight this way:  bgwt*pop 
-  
-  sites2bg <- sites2blocks[blockwts, .(siteid, bgfips, distance, bgwt = sum(blockwt, na.rm=TRUE)), on = .(blockid), by =.(siteid, bgfips)] 
-  
-  rm(sites2blocks) # unless need save that to analyze distance distribution 
+  # sites2bg <- sites2blocks[blockwts, .(siteid, bgfips, distance, bgwt = sum(blockwt, na.rm=TRUE)), on = .(blockid), by =.(siteid, bgfips)] 
+  # rm(sites2blocks) # unless need save that to analyze distance distribution 
   
   # 2)  JOIN that mid-sized table OF BLOCKGROUPS, to blockgroupstats (200 cols)  ###################### #
   
   sites2bg[, lapply(.SD, popmeancols := sum(pop * blockwt * blockgroupstats[,popmeancols], na.rm=T) / sum(pop * blockwt, na.rm=T)), by = .(siteid), .SDcols = popmeancols]
   
   sites2bg[, lapply(.SD, countcols   := sum(      blockwt * blockgroupstats[,  countcols], na.rm=T)), by = .(siteid), .SDcols = countcols]  
+  
+  
+  # Notes on using variable with list of colnames, to 
+  # apply function to specified columns and 
+  # assign results with specified variable names to the original data.
+  #  but I don't need to rename the indicators actually.
+  # 
+  # in_cols  = c("dep_delay", "arr_delay")
+  # out_cols = c("max_dep_delay", "max_arr_delay")
+  # flights[, c(out_cols) := lapply(.SD, max), by = month, .SDcols = in_cols]
   
   
   #######################################  

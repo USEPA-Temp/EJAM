@@ -42,13 +42,47 @@
 #' @import blockdata
 #' @export
 #'
-doaggregate2 <- function(sites2blocks, ...) {
+doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculatedcols=NULL,  ...) {
   
   # @param popmeancols   # **********************************************
   # @param countcols vector of column names   # **********************************************
   #
   #  popmeancols=popmeancols_default, countcols=countcols_default, indicator_formulas=indicator_formulas_default
   
+  # HARDCODED FOR NOW:
+  # from EJSCREEN dataset, names as in ejscreen package:
+  
+  if (is.null(countcols)) {
+    countcols <- c(
+      "pop", "mins", 'nonmins',
+      "lowinc", "povknownratio",   
+      "lths", "age25up", 
+      "lingiso", "hhlds", 
+      "under5", "over64",
+      "unemployed","unemployedbase",
+      'pre1960','builtunits',
+      "nhwa", "hisp", "nhba", "nhaa", "nhaiana", "nhnhpia", "nhotheralone", "nhmulti"
+    )
+  }  
+  if (is.null(calculatedcols)) {
+    # calculatedcols <- c(ejscreen::names.d, 'flagged') 
+    # or to avoid depending on ejscreen package, 
+    # dput(c(ejscreen::names.d, 'flagged') )
+    calculatedcols <- c("VSI.eo", "pctmin", "pctlowinc", "pctlths", "pctlingiso", "pctunder5", 
+                        "pctover64", "flagged")
+  }
+  if (is.null(popmeancols)) {
+    # popmeancols <- c(ejscreen::names.ej, ejscreen::names.e) 
+    # or to avoid depending on ejscreen package, 
+    # dput(c(ejscreen::names.ej, ejscreen::names.e) )
+    popmeancols <- c("EJ.DISPARITY.pm.eo", "EJ.DISPARITY.o3.eo", "EJ.DISPARITY.cancer.eo", 
+                     "EJ.DISPARITY.resp.eo", "EJ.DISPARITY.dpm.eo", "EJ.DISPARITY.pctpre1960.eo", 
+                     "EJ.DISPARITY.traffic.score.eo", "EJ.DISPARITY.proximity.npl.eo", 
+                     "EJ.DISPARITY.proximity.rmp.eo", "EJ.DISPARITY.proximity.tsdf.eo", 
+                     "EJ.DISPARITY.proximity.npdes.eo", "pm", "o3", "cancer", "resp", 
+                     "dpm", "pctpre1960", "traffic.score", "proximity.npl", "proximity.rmp", 
+                     "proximity.tsdf", "proximity.npdes")
+  }  
   
   # HANDLING DOUBLE COUNTING
   # Some steps are the same for overall and site-by-site so it is more efficient to do both together if want both. 
@@ -66,19 +100,20 @@ doaggregate2 <- function(sites2blocks, ...) {
   
   # CODE #############################################################################################
   
-  # testing
-  
-  library(data.table); library(blockdata); data("blockwts")
-  data('sites2blocks_example') # it is called  sites2blocks 
-  data.table::setnames(sites2blocks, 'blockid', 'blockfips')
-  data.table::setnames(sites2blocks, 'BLOCKID', 'blockfips')
-  data.table::setkey(sites2blocks, 'blockfips', 'siteid')
+  if (testing) {
+    
+    # FOR TESTING 
+    library(data.table); library(blockdata); data("blockwts")
+    data('sites2blocks_example') # it is called  sites2blocks_example
+    sites2blocks <- sites2blocks_example 
+  }
+  # data.table::setkey(result, "blockid", "siteid", "distance") #  has been done by getrelevant.. now
   
   # but need blockid, not fips.   *********************  THIS IS SLOW:
   # sites2blocks***** <- merge(blockdata::blockid2fips, sites2blocks, by='blockfips', all.x=FALSE, all.y=TRUE)
-  sites2blocks$blockid <- blockdata::blockid2fips[sites2blocks, .(blockid), on='blockfips']
-  sites2blocks[,blockfips := NULL]
-  data.table::setkey(sites2blocks, 'blockid', 'siteid')
+  # sites2blocks$blockid <- blockdata::blockid2fips[sites2blocks, .(blockid), on='blockfips']
+  # sites2blocks[,blockfips := NULL]
+  # data.table::setkey(sites2blocks, 'blockid', 'siteid')
   
   
   # blocks #######################################
@@ -86,28 +121,34 @@ doaggregate2 <- function(sites2blocks, ...) {
   # get weights for nearby blocks
   # sites2blocks <- merge(sites2blocks, blockwts, by='blockid', all.x	=TRUE, all.y=FALSE) # incomparables=NA
   sites2blocks <- blockwts[sites2blocks, .(siteid,blockid,distance,blockwt,bgfips), on='blockid']
-  rm(blockwts) #; gc()  # drop 6m row block table to save RAM
+  # rm(blockwts) #; gc()  # drop 6m row block table to save RAM # does not seem to be loaded to do that??
+  
+  # optional: Calc # of sites nearby each block: How many of these sites are near this resident? this bg? avg resident overall? 
+  sites2blocks[, sitecount_near_block := .N, by=blockid] # (must use the table with duplicate blocks, not unique only)
   
   # drop duplicate blocks, which are residents near 2 or more sites, to avoid double-counting them
   sites2blocks_overall <- unique(sites2blocks, by="blockid")
   
   # Calc avg person's proximity (block-level), by bg: censuspop-wtd mean of block-specific distances, for each bg 
-  sites2blocks_overall[,bg_fraction_in_buffer_overall := sum(blockwt), by=bgfips]  
+  sites2blocks_overall[, bg_fraction_in_buffer_overall := sum(blockwt), by=bgfips]  
   sites2blocks[, bg_fraction_in_buffer_bysite := sum(blockwt), by=c('bgfips', 'siteid')]
   
-  # optional: Calc # of sites nearby each block: How many of these sites are near this resident? this bg? avg resident overall? 
-  sites2blocks[, sitecount_near_block := .N, by=blockid] # (must use the table with duplicate blocks, not unique only)
+  # was going to try to do join of weights and the aggregation by blockid all in this one step? but not tested 
+  # and may need to do intermed step 1st, where 
+  # sites2bg <- blockwts[sites2blocks, .(siteid, bgfips, distance, bgwt = sum(blockwt, na.rm=TRUE)), on = 'blockid', by =.(siteid, bgfips)] 
+
+  ## why do sum(blockwt) by bgfips  here AGAIN, if already did it above?
   
-  # rollup as blockgroups - Aggregate blocks into blockgroups, per siteid ***  #######################################
+    # rollup as blockgroups - Aggregate blocks into blockgroups, per siteid ***  #######################################
   # Calc bgwt, the fraction of each (parent)blockgroup's censuspop that is in buffer
-  sites2bgs_overall <- sites2blocks_overall[ , bgwt := sum(blockwt), by=bgfips ]
-  sites2bgs_bysite  <- sites2blocks[ , bgwt := sum(blockwt, na.rm = TRUE), by=.(siteid, bgfips)]
+  sites2bgs_overall <- sites2blocks_overall[ , .(bgwt = sum(blockwt)), by=bgfips ]
+  sites2bgs_bysite  <- sites2blocks[ , .(bgwt = sum(blockwt, na.rm = TRUE)), by=.(siteid, bgfips)]
   
   # optional: Calc maybe # of unique sites nearby each blockgroup
-  sites2bgs_overall[ , sitecount_near_bg := length(unique(siteid)), by=bgfips] 
+  sites2bgs_bysite[ , sitecount_near_bg := length(unique(siteid)), by=bgfips] 
   #slow!:
-  rm(sites2blocks); gc() # unless need save that to analyze distance distribution 
-  
+  if (!testing) {rm(sites2blocks); gc()} # unless need save that to analyze distance distribution 
+
   
   #  Maybe want some extra summary stats across people and sites (about the distribution), one column per indicator. 
   #  BUT MOST OF THE INTERESTING STATS LIKE MEDIAN PERSON'S SCORE, OR WORST BLOCKGROUP, 
@@ -118,20 +159,17 @@ doaggregate2 <- function(sites2blocks, ...) {
   
   # 2) *** JOIN *** the midsized intermed table to blockgroupstats   ################################
   
-  # Notes on using variable with list of colnames, to 
-  # apply function to specified columns and 
-  # assign results with specified variable names to the original data.
-  #  but I don't need to rename the indicators actually.
-  # 
-  # in_cols  = c("dep_delay", "arr_delay")
-  # out_cols = c("max_dep_delay", "max_arr_delay")
-  # flights[, c(out_cols) := lapply(.SD, max), by = month, .SDcols = in_cols]
+   
+  
+  #    NEEED TO DO JOIN HERE OF **blockgroupstats**   200 columns, on bgid 
   
   
   
   countcols <- c('pop', 'mins', ejscreen::names.d.subgroups.count) # examples 
   popmeancols <- c(names.e, names.ej) # we want the raw scores only for EJ and E, or pct only for demog.
   calculatedcols <- names.d # use formulas for these
+  
+  sites2bgs_overall <- sites2bgs_overall[blockgroupstats, , on=]
   
   # COUNTS OVERALL
   results_overall <- sites2bgs_overall[ , .(countcols = lapply(.SD, FUN = function(x) sum(x * bgwt, na.rm=TRUE))), .SDcols = countcols] 
@@ -147,7 +185,7 @@ doaggregate2 <- function(sites2blocks, ...) {
   results_bysite[  ,     .(popmeancols := lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE))), by = siteid, .SDcols = popmeancols]
   
   
-
+  
   warning('work in progress stops here')  # 3############   code below is older 
   
   results <- list(results_overall = results_overall, results_bysite = results_bysite)
