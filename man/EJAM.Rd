@@ -26,12 +26,12 @@ but for a large number of reports (one for each site).
 \subsection{\strong{Key Functions:}}{
 \itemize{
 \item \code{\link[=doaggregate]{doaggregate()}}* Summarize the indicators from blockgroupstats
-within each buffer weighted using blockdata
+within each buffer weighted using blockwts
 (for average resident within specified distance of site or facility)
 NOTE: FUNCTION IS BEING REWRITTEN to be generic to use any indicators,
 and to use smaller data files, and be faster, etc.
 doaggregate2() is that work in progress.
-\item \code{\link[=getrelevantCensusBlocksviaQuadTree_Clustered]{getrelevantCensusBlocksviaQuadTree_Clustered()}}*
+\item \code{\link[=getrelevantCensusBlocksviaQuadTree]{getrelevantCensusBlocksviaQuadTree()}}*
 Very fast method to buffer, identifying which blocks are
 within specified distance of site or facility
 }

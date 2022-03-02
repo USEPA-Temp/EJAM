@@ -31,8 +31,8 @@ doaggregate <- function(facilities, facilityblocks){
   
   # ******* this should be rewritten to not be hardcoded for specific columns, indicators like pctlowinc   ****************
   
-  # Also, as written, it assumes blockdata is in global environment already.
-  # blockdata for Census 2010 was approx 350 MB as a .rdata file !!
+  # Also, as written, it assumed blockdata was in global environment already.
+  # blockdata  for Census 2010 was approx 350 MB as a .rdata file !!
   
   # filter out any rows with missing values
   facilities <- facilities[!is.na(facilities$LONG) & !is.na(facilities$LAT),]

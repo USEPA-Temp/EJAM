@@ -24,13 +24,13 @@
 #' @details  ## **Key Functions:** ####################################################################
 #'
 #' * [doaggregate()]* Summarize the indicators from blockgroupstats 
-#'     within each buffer weighted using blockdata
+#'     within each buffer weighted using blockwts
 #'     (for average resident within specified distance of site or facility)
 #'      NOTE: FUNCTION IS BEING REWRITTEN to be generic to use any indicators,
 #'      and to use smaller data files, and be faster, etc.
 #'      doaggregate2() is that work in progress.
 #'
-#' * [getrelevantCensusBlocksviaQuadTree_Clustered()]*  
+#' * [getrelevantCensusBlocksviaQuadTree()]*  
 #'     Very fast method to buffer, identifying which blocks are 
 #'     within specified distance of site or facility
 #'

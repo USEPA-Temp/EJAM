@@ -18,13 +18,17 @@ This updated 2022 code takes a set of facilities and the set of blocks that are 
   (as identified previously, in other code that has identified which blocks are nearby)
   and combines those with indicator scores for block groups.
 
-  It aggregates the scores as population weighted means, (check that - all of them?)
-  creating a summary of each indicator, in each buffer (i.e., near each facility).
+  It aggregates the blockgroup scores to create a summary of each indicator,
+   in each buffer (i.e., near each facility):
+     -Sums of counts, such as for population or number of households or Hispanics
+     -Calculated variables for the buffer via formulas based on aggregated counts, 
+       such as percent low income.
+     -Population-Weighted means for EJ Indexes or Environmental indicators.
 }
 \details{
 \preformatted{
 
-  As currently written, requires the following already be in the global environment,
+  requires the following as data lazy loaded for example from blockdata package
 
    blockdata  data.table (was 335 MB as .rdata) with these columns: blockfips, bgfips, STUSAB, blockpop2010, bgpop2010, blockwt, 
    # INTPTLAT, INTPTLON, BLOCK_LAT_RAD, BLOCK_LONG_RAD  BLOCK_X   BLOCK_Y  BLOCK_Z ID GRID_X GRID_Y GRID_Z 

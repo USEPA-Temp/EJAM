@@ -1,6 +1,6 @@
 # script example of running proximity analysis without Shiny app
-# **** as written currently, presumes that other data are in global environment, ****
-# **** like blockgroupstats, blockdata, quaddata, etc. ****
+# ****  presumes that other data are in global environment, ****
+# **** like blockgroupstats, quaddata, etc. ****
 if (1 ==0) {
 
   # See details in help for ?EJAM
