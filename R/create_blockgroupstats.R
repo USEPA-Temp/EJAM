@@ -1,7 +1,7 @@
-create_blockgroupstats <- function() {
+create_blockgroupstats <- function(bg=ejscreen::bg20, demog=ejscreen::bg20DemographicSubgroups2014to2018, year=2020) {
   ## script to create blockgroupstats.rda
   
-  b2 <- ejscreen::bg20 # EJAM::blockgroupstats) # work with it as a data.frame not data.table until a later step
+  b2 <- bg # ejscreen::bg20 # EJAM::blockgroupstats) # work with it as a data.frame not data.table until a later step
   # drop the bin number for percentiles, which just tells what decile except 10 is 90-95th pctile and bin 11 is 95-100, like ejscreen orange and red map colors in choropleths 
   dropping <- grep('^bin\\.', names(b2), value = TRUE )
   # drop the text labels describing the percentile values as in popups
@@ -22,7 +22,7 @@ create_blockgroupstats <- function() {
   names(b2) <- gsub('TSDF_CNT', 'count.TSDF', names(b2))
   
   # drop fields already in b2
-  subgroups <- ejscreen::bg20DemographicSubgroups2014to2018
+  subgroups <- demog #  ejscreen::bg20DemographicSubgroups2014to2018
   subgroups$mins <- NULL
   subgroups$pctmin <- NULL
   subgroups$pop <- NULL
@@ -35,16 +35,19 @@ create_blockgroupstats <- function() {
   # 
   # names(b2) <- gsub('BLOCKGROUPFIPS', 'bgfips', names(b2))
   
-  
   # setdiff(names(ejscreen::bg20), names(b2) )
   # setdiff(names(b2) ,names(ejscreen::bg20))
   blockgroupstats <- b2
   data.table::setDT(blockgroupstats, key = 'bgfips') # by reference only
   # blockgroupstats <- data.table::data.table(blockgroupstats, key = 'bgfips') # makes a copy
   rm(b2); rm(subgroups);rm(dropping)
-  
+  attr(blockgroupstats, 'year') <- year
+  print('You can now add it to the package with this:   usethis::use_data(blockgroupstats)')
   invisible(blockgroupstats)
+  
   # blockgroupstats uses 116 MB according to tables()
   # without the race eth subgroups it was just 87 MB !
-  # saveRDS(blockgroupstats, file = './data/blockgroupstats.rda')
+  # save(blockgroupstats, file = './data/blockgroupstats.rda')
+  # or try it this way:
+  #  usethis::use_data(blockgroupstats)
 }
