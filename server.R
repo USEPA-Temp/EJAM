@@ -8,7 +8,7 @@ shinyServer(function(input, output, session) {
   # warnings and text outputs re selected Facilities, Industry, or Locations ##########################################
   numUniverseSource <- function() {
     selInd=0
-    if (nchar(input$selectIndustry1)>0 | length(input$selectIndustry2)>0) {
+    if (nchar(input$selectIndustry1_byNAICS)>0 | length(input$selectIndustry2_by_selectInput)>0) {
       selInd=1
     }
     numLoc=nrow(dataLocationList())
@@ -28,7 +28,7 @@ shinyServer(function(input, output, session) {
   }
 
   getWarning1 <- function() {
-    if (nchar(input$selectIndustry1)>0 & length(input$selectIndustry2)>0) {
+    if (nchar(input$selectIndustry1_byNAICS)>0 & length(input$selectIndustry2_by_selectInput)>0) {
       print("Please use a single industry select option.")
     }
   }
@@ -37,11 +37,11 @@ shinyServer(function(input, output, session) {
     tot=numUniverseSource()
     length_selectIndustry1=0
     length_selectIndustry2=0
-    if (!is.null(input$selectIndustry1)) {
-      length_selectIndustry1=nchar(input$selectIndustry1)
+    if (!is.null(input$selectIndustry1_byNAICS)) {
+      length_selectIndustry1=nchar(input$selectIndustry1_byNAICS)
     }
-    if (!is.null(input$selectIndustry2)) {
-      length_selectIndustry2=nchar(input$selectIndustry2)
+    if (!is.null(input$selectIndustry2_by_selectInput)) {
+      length_selectIndustry2=nchar(input$selectIndustry2_by_selectInput)
     }
     if (length_selectIndustry1>0 & length_selectIndustry2>0) {
       print("Please use a single industry select option.")
@@ -60,24 +60,29 @@ shinyServer(function(input, output, session) {
     getWarning2()
   })
 
-  output$selectInd1 <- renderPrint({
-    if (length(input$selectIndustry1)>1) {
-      x=paste(input$selectIndustry1,collapse=", ")
-      paste("Selected industries ", x)
-    }
-    else {
-      return("")
-    }
+  output$selectInd1_for_testing <- renderPrint({
+    if (length(input$selectIndustry1_byNAICS) > 1) {  # not really used except in testing tab
+      x = paste(input$selectIndustry1_byNAICS,collapse=", ")
+      return(paste("Selected industries ", x))
+    }  else {
+      if (length(input$selectIndustry1_byNAICS) == 1 & nchar(input$selectIndustry1_byNAICS) > 0) {
+        return(paste("Selected industry ", input$selectIndustry1_byNAICS))
+        }
+      }
+    return('')
   })
 
-  output$selectInd2 <- renderPrint({
-    if (length(input$selectIndustry2)>1) {
-      x=paste(input$selectIndustry2,collapse=", ")
-      paste("Selected industries ", x)
-    }
-    else {
-      return("")
-    }
+  output$selectInd2_for_testing <- renderPrint({  # not really used except in testing tab
+    if (length(input$selectIndustry2_by_selectInput) > 1) {
+      x=paste(input$selectIndustry2_by_selectInput,collapse=", ")
+      return(paste("Selected industries ", x))
+    } else {
+      # & nchar(input$selectIndustry2_by_selectInput) > 0
+      if (length(input$selectIndustry2_by_selectInput) == 1 ) {
+        return(paste("Selected industry ", input$selectIndustry2_by_selectInput))
+        }
+    } 
+    return('')
   })
 
   output$selectScope1 <- renderPrint({
@@ -247,8 +252,8 @@ shinyServer(function(input, output, session) {
 
   datasetNAICS <- function() {
     #### to pass all the reactives as parameters, you would do this:
-    # selectIndustry1=input$selectIndustry1,
-    # selectIndustry2=input$selectIndustry2,
+    # selectIndustry1_byNAICS=input$selectIndustry1_byNAICS,
+    # selectIndustry2_by_selectInput=input$selectIndustry2_by_selectInput,
     # cutoff=getCutoff(),
     # maxcutoff=getMaxcutoff(),
     # get_unique=TRUE,
@@ -272,7 +277,7 @@ shinyServer(function(input, output, session) {
     # clean up users selections ####
     ################################################################## #
 
-    if (nchar(input$selectIndustry1)>0 & length(input$selectIndustry2)>0) {
+    if (nchar(input$selectIndustry1_byNAICS)>0 & length(input$selectIndustry2_by_selectInput)>0) {
       return()
     }
     cutoff=getCutoff()  # reactive
@@ -283,9 +288,9 @@ shinyServer(function(input, output, session) {
     # which datasystems are we searching?
     selectNaicsDS1 = input$selectNaicsDS1
     selectNaicsDS2 = input$selectNaicsDS2
-    inNAICS1 = input$selectIndustry1
+    inNAICS1 = input$selectIndustry1_byNAICS
     inputnaics1 <- as.list(strsplit(inNAICS1, ",")[[1]])
-    inNAICS2=input$selectIndustry2
+    inNAICS2=input$selectIndustry2_by_selectInput
 
     if (nchar(inNAICS1)>0 | length(inNAICS2)>0) {
 
@@ -294,7 +299,7 @@ shinyServer(function(input, output, session) {
       nrow(selectNaicsDS1)
 
       inputnaics1 <- as.list(strsplit(inNAICS1, ",")[[1]])
-      inputnaics <- input$selectIndustry2
+      inputnaics <- input$selectIndustry2_by_selectInput
       inputnaics=c(inputnaics1,inNAICS2)
       inputnaics=unique(inputnaics[inputnaics != ""])
       x <- paste("^",inputnaics,collapse="|")   ### the NAICS specified by user
@@ -396,8 +401,8 @@ shinyServer(function(input, output, session) {
 
       selectNaicsDS1=paste(input$selectNaicsDS1,collapse=", ")
       selectNaicsDS2=paste(input$selectNaicsDS2,collapse=", ")
-      industryList=paste(input$selectIndustry1,collapse=", ")
-      industryList=paste(industryList,input$selectIndustry2,collapse=", ")
+      industryList=paste(input$selectIndustry1_byNAICS,collapse=", ")
+      industryList=paste(industryList,input$selectIndustry2_by_selectInput,collapse=", ")
 
       #"Individual facility statistics"
 
@@ -453,7 +458,7 @@ shinyServer(function(input, output, session) {
     if (length(getWarning1() > 1) | length(getWarning2() > 1)) {
       return()
     }
-    else if (nchar(input$selectIndustry1) > 0 | length(input$selectIndustry2) > 0) {
+    else if (nchar(input$selectIndustry1_byNAICS) > 0 | length(input$selectIndustry2_by_selectInput) > 0) {
       return(datasetNAICS( )) # that is a separate function not a reactive
     }
     else if (length(myfile_uploaded_latlons()) > 1) {

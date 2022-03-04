@@ -5,21 +5,21 @@
 \title{clean up selected NAICS facilities by NAICS industrial sector code}
 \usage{
 datasetNAICS(
-  selectIndustry1,
-  selectIndustry2,
+  selectIndustry1_byNAICS,
+  selectIndustry2_by_selectInput,
   cutoff,
   maxcutoff = 50,
   get_unique = FALSE,
   avoidorphans = TRUE,
   doExpandradius = NULL,
-  selectNaicsDS1,
-  selectNaicsDS2
+  selectNaics_in_Datasystem1,
+  selectNaics_and_Datasystem2
 )
 }
 \arguments{
-\item{selectIndustry1}{reactive from shiny input$selectIndustry1}
+\item{selectIndustry1_byNAICS}{reactive from shiny input$selectIndustry1_byNAICS}
 
-\item{selectIndustry2}{reactive from shiny input$selectIndustry2}
+\item{selectIndustry2_by_selectInput}{reactive from shiny input$selectIndustry2_by_selectInput}
 
 \item{cutoff}{getCutoff()}
 
@@ -31,9 +31,9 @@ datasetNAICS(
 
 \item{doExpandradius}{obsolete?}
 
-\item{selectNaicsDS1}{was from shiny app input$selectNaicsDS1}
+\item{selectNaics_in_Datasystem1}{was from shiny app input$selectNaics_in_Datasystem1}
 
-\item{selectNaicsDS2}{was from shiny app input$selectNaicsDS1}
+\item{selectNaics_and_Datasystem2}{was from shiny app input$selectNaics_in_Datasystem1}
 }
 \description{
 NOTE:   A VERSION OF THIS IS WITHIN server.R 
@@ -43,14 +43,14 @@ NOTE:   A VERSION OF THIS IS WITHIN server.R
 \preformatted{
     To pass all the reactives as parameters, you would do this: 
     
- selectIndustry1=input$selectIndustry1, 
- selectIndustry2=input$selectIndustry2,
+ selectIndustry1_byNAICS=input$selectIndustry1_byNAICS, 
+ selectIndustry2_by_selectInput=input$selectIndustry2_by_selectInput,
  cutoff=getCutoff(), 
  maxcutoff=getMaxcutoff(), 
  get_unique=TRUE, 
  avoidorphans=TRUE,
  doExpandradius=doExpandradius(), 
- selectNaicsDS1= input$selectNaicsDS1, 
- selectNaicsDS2 =input$selectNaicsDS2)
+ selectNaics_in_Datasystem1= input$selectNaics_in_Datasystem1, 
+ selectNaics_and_Datasystem2 =input$selectNaics_and_Datasystem2)
  }
 }

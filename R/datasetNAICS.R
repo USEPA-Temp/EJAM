@@ -7,33 +7,33 @@
 #' \preformatted{
 #'     To pass all the reactives as parameters, you would do this: 
 #'     
-#'  selectIndustry1=input$selectIndustry1, 
-#'  selectIndustry2=input$selectIndustry2,
+#'  selectIndustry1_byNAICS=input$selectIndustry1_byNAICS, 
+#'  selectIndustry2_by_selectInput=input$selectIndustry2_by_selectInput,
 #'  cutoff=getCutoff(), 
 #'  maxcutoff=getMaxcutoff(), 
 #'  get_unique=TRUE, 
 #'  avoidorphans=TRUE,
 #'  doExpandradius=doExpandradius(), 
-#'  selectNaicsDS1= input$selectNaicsDS1, 
-#'  selectNaicsDS2 =input$selectNaicsDS2)
+#'  selectNaics_in_Datasystem1= input$selectNaics_in_Datasystem1, 
+#'  selectNaics_and_Datasystem2 =input$selectNaics_and_Datasystem2)
 #'  }
 #'  
-#' @param selectIndustry1 reactive from shiny input$selectIndustry1
-#' @param selectIndustry2 reactive from shiny input$selectIndustry2
+#' @param selectIndustry1_byNAICS reactive from shiny input$selectIndustry1_byNAICS
+#' @param selectIndustry2_by_selectInput reactive from shiny input$selectIndustry2_by_selectInput
 #' @param cutoff  getCutoff()
 #' @param maxcutoff  getMaxcutoff() 
 #' @param get_unique default is FALSE now but was TRUE, but likely to get rid of this?! 
 #' @param avoidorphans default TRUE
 #' @param doExpandradius obsolete?
-#' @param selectNaicsDS1 was from shiny app input$selectNaicsDS1
-#' @param selectNaicsDS2  was from shiny app input$selectNaicsDS1
+#' @param selectNaics_in_Datasystem1 was from shiny app input$selectNaics_in_Datasystem1
+#' @param selectNaics_and_Datasystem2  was from shiny app input$selectNaics_in_Datasystem1
 #'
 #' @export
 #'
-datasetNAICS <- function(selectIndustry1, selectIndustry2, 
+datasetNAICS <- function(selectIndustry1_byNAICS, selectIndustry2_by_selectInput, 
                          cutoff, maxcutoff=50, get_unique=FALSE, 
                          avoidorphans=TRUE, doExpandradius=NULL,
-                         selectNaicsDS1, selectNaicsDS2) {   
+                         selectNaics_in_Datasystem1, selectNaics_and_Datasystem2) {   
   
   ################################################################## #
   # Prep full FRS that has NAICS of all sites and their lat lon ####
@@ -41,7 +41,7 @@ datasetNAICS <- function(selectIndustry1, selectIndustry2,
   ################################################################## #
   
   mytest <- frsdata::frs_naics_2016 # frsdata::facilities
-  mytest$cnaics <- as.character(mytest$NAICS)
+  mytest$cnaics <- as.character(mytest$NAICS) # was stored as factor w/ 22 levels
   
   sub2 <- data.table::data.table(a = numeric(0), b = character(0))
   
@@ -49,7 +49,7 @@ datasetNAICS <- function(selectIndustry1, selectIndustry2,
   # CLEAN UP USER'S NAICS SELECTIONS ? ####
   ################################################################## #
   
-  if (nchar(input$selectIndustry1)>0 & length(input$selectIndustry2)>0) {
+  if (nchar(input$selectIndustry1_byNAICS)>0 & length(input$selectIndustry2_by_selectInput)>0) {
     return()
   }
   # cutoff=getCutoff()
@@ -58,21 +58,21 @@ datasetNAICS <- function(selectIndustry1, selectIndustry2,
   # avoidorphans=     ???  doExpandradius()
   
   # which datasystems are we searching?
-  selectNaicsDS1 = input$selectNaicsDS1
-  selectNaicsDS2 = input$selectNaicsDS2
-  inNAICS1 = input$selectIndustry1
-  inNAICS2=input$selectIndustry2
+  selectNaics_in_Datasystem1 = input$selectNaics_in_Datasystem1
+  selectNaics_and_Datasystem2 = input$selectNaics_and_Datasystem2
+  inNAICS1 = input$selectIndustry1_byNAICS
+  inNAICS2 = input$selectIndustry2_by_selectInput
   
   inputnaics1 <- as.list(strsplit(inNAICS1, ",")[[1]])
   
   if (nchar(inNAICS1)>0 | length(inNAICS2)>0) {
     
-    selectNaicsDS1 = c('OIL','AIRS/AFS')
-    selectNaicsDS2 = c('RCRAINFO')
-    nrow(selectNaicsDS1)
+    selectNaics_in_Datasystem1 = c('OIL','AIRS/AFS')
+    selectNaics_and_Datasystem2 = c('RCRAINFO')
+    nrow(selectNaics_in_Datasystem1)
     
     inputnaics1 <- as.list(strsplit(inNAICS1, ",")[[1]])
-    inputnaics <- input$selectIndustry2
+    inputnaics <- input$selectIndustry2_by_selectInput
     inputnaics=c(inputnaics1,inNAICS2)
     inputnaics=unique(inputnaics[inputnaics != ""])
     x <- paste("^",inputnaics,collapse="|")
@@ -84,19 +84,19 @@ datasetNAICS <- function(selectIndustry1, selectIndustry2,
     
     matches <- unique(grep(y, mytest$cnaics, value=TRUE))
     
-    if (length(selectNaicsDS1)>0 & length(selectNaicsDS2)>0) {
-      temp <- mytest[PROGRAM %in% selectNaicsDS1]
+    if (length(selectNaics_in_Datasystem1)>0 & length(selectNaics_and_Datasystem2)>0) {
+      temp <- mytest[PROGRAM %in% selectNaics_in_Datasystem1]
       temp <- temp[cnaics %in% matches]
       temp <- unique(temp[,.(REGISTRY_ID)])
       sub1 <- data.table::as.data.table(merge(x = mytest, y = temp, by.x='REGISTRY_ID', by.y='REGISTRY_ID'), all.y=TRUE)
-      sub2 <- sub1[PROGRAM %in% selectNaicsDS2]
+      sub2 <- sub1[PROGRAM %in% selectNaics_and_Datasystem2]
       sub2$ID <- c(seq.int(nrow(sub2)))
     }
-    else if (length(selectNaicsDS2)>0) {
-      sub2 < -mytest[PROGRAM %in% selectNaicsDS2]
+    else if (length(selectNaics_and_Datasystem2)>0) {
+      sub2 < -mytest[PROGRAM %in% selectNaics_and_Datasystem2]
       sub2$ID <- c(seq.int(nrow(sub2)))
     }
-    else if (length(selectNaicsDS1)>0) {
+    else if (length(selectNaics_in_Datasystem1)>0) {
       sub2 <- mytest[cnaics %in% matches]
       sub2$ID <- c(seq.int(nrow(sub2)))
       colnames(sub2)
