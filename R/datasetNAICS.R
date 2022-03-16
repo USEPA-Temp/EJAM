@@ -52,10 +52,10 @@ datasetNAICS <- function(selectIndustry1_byNAICS, selectIndustry2_by_selectInput
   if (nchar(input$selectIndustry1_byNAICS)>0 & length(input$selectIndustry2_by_selectInput)>0) {
     return()
   }
-  # cutoff=getCutoff()
-  # maxcutoff=getMaxcutoff()
-  # get_unique=setUnique()
-  # avoidorphans=     ???  doExpandradius()
+  # cutoff=getCutoff() # reactive
+  # maxcutoff=getMaxcutoff() # reactive
+  # get_unique=setUnique() # reactive
+  # avoidorphans=     ???  doExpandradius()  # reactive
   
   # which datasystems are we searching?
   selectNaics_in_Datasystem1 = input$selectNaics_in_Datasystem1

@@ -259,8 +259,8 @@ shinyServer(function(input, output, session) {
     # get_unique=TRUE,
     # avoidorphans=TRUE,
     # doExpandradius=doExpandradius(),
-    # selectNaicsDS1= input$selectNaicsDS1,
-    # selectNaicsDS2 =input$selectNaicsDS2)
+    # selectNaics_in_Datasystem1= input$selectNaics_in_Datasystem1,
+    # selectNaics_and_Datasystem2 =input$selectNaics_and_Datasystem2)
 
 
     ################################################################## #
@@ -283,20 +283,20 @@ shinyServer(function(input, output, session) {
     cutoff=getCutoff()  # reactive
     maxcuttoff=getMaxcutoff()  # reactive, max distance to search
     get_unique=setUnique() # reactive, TRUE = stats are for dissolved single buffer to avoid doublecounting. FALSE = we want to count each person once for each site they are near.
-    avoidorphans=doExpandradius() # Expand distance searched, when a facility has no census block centroid within selected buffer distance
+    avoidorphans=doExpandradius()  # reactive # Expand distance searched, when a facility has no census block centroid within selected buffer distance
 
     # which datasystems are we searching?
-    selectNaicsDS1 = input$selectNaicsDS1
-    selectNaicsDS2 = input$selectNaicsDS2
+    selectNaics_in_Datasystem1 = input$selectNaics_in_Datasystem1
+    selectNaics_and_Datasystem2 = input$selectNaics_and_Datasystem2
     inNAICS1 = input$selectIndustry1_byNAICS
     inputnaics1 <- as.list(strsplit(inNAICS1, ",")[[1]])
     inNAICS2=input$selectIndustry2_by_selectInput
 
     if (nchar(inNAICS1)>0 | length(inNAICS2)>0) {
 
-      selectNaicsDS1 = c('OIL','AIRS/AFS')
-      selectNaicsDS2 = c('RCRAINFO')
-      nrow(selectNaicsDS1)
+      selectNaics_in_Datasystem1 = c('OIL','AIRS/AFS')
+      selectNaics_and_Datasystem2 = c('RCRAINFO')
+      nrow(selectNaics_in_Datasystem1)
 
       inputnaics1 <- as.list(strsplit(inNAICS1, ",")[[1]])
       inputnaics <- input$selectIndustry2_by_selectInput
@@ -311,19 +311,19 @@ shinyServer(function(input, output, session) {
 
       matches <- unique(grep(y, mytest$cnaics, value=TRUE))  #
 
-      if (length(selectNaicsDS1)>0 & length(selectNaicsDS2)>0) {
-        temp<-mytest[PROGRAM %in% selectNaicsDS1]
+      if (length(selectNaics_in_Datasystem1)>0 & length(selectNaics_and_Datasystem2)>0) {
+        temp<-mytest[PROGRAM %in% selectNaics_in_Datasystem1]
         temp<-temp[cnaics %in% matches]
         temp<-unique(temp[,.(REGISTRY_ID)])
         sub1 <-data.table::as.data.table(merge(x = mytest, y = temp, by.x='REGISTRY_ID', by.y='REGISTRY_ID'), all.y=TRUE)
-        sub2<-sub1[PROGRAM %in% selectNaicsDS2]
+        sub2<-sub1[PROGRAM %in% selectNaics_and_Datasystem2]
         sub2$ID<- c(seq.int(nrow(sub2)))
       }
-      else if (length(selectNaicsDS2)>0) {
-        sub2<-mytest[PROGRAM %in% selectNaicsDS2]
+      else if (length(selectNaics_and_Datasystem2)>0) {
+        sub2<-mytest[PROGRAM %in% selectNaics_and_Datasystem2]
         sub2$ID<- c(seq.int(nrow(sub2)))
       }
-      else if (length(selectNaicsDS1)>0) {
+      else if (length(selectNaics_in_Datasystem1)>0) {
         sub2<-mytest[cnaics %in% matches]
         sub2$ID<- c(seq.int(nrow(sub2)))
         colnames(sub2)
@@ -399,8 +399,8 @@ shinyServer(function(input, output, session) {
 
       userin=""
 
-      selectNaicsDS1=paste(input$selectNaicsDS1,collapse=", ")
-      selectNaicsDS2=paste(input$selectNaicsDS2,collapse=", ")
+      selectNaics_in_Datasystem1=paste(input$selectNaics_in_Datasystem1,collapse=", ")
+      selectNaics_and_Datasystem2=paste(input$selectNaics_and_Datasystem2,collapse=", ")
       industryList=paste(input$selectIndustry1_byNAICS,collapse=", ")
       industryList=paste(industryList,input$selectIndustry2_by_selectInput,collapse=", ")
 
@@ -436,8 +436,8 @@ shinyServer(function(input, output, session) {
       userin=addUserInput(file,userin, definedOutput2,   "Defined output: ")
       userin=addUserInput(file,userin, input$expandRadius, "Expand distance for facilities with no census block centroid within selected buffer distance: ")
       userin=addUserInput(file,userin, as.character(getCutoff()), "Define Buffer Distance (in miles?): ") #as.character(getCutoff())
-      userin=addUserInput(file,userin, selectNaicsDS2, "Include facilities with records in: ")
-      userin=addUserInput(file,userin, selectNaicsDS1, "Match your NAICS code selection with: ")
+      userin=addUserInput(file,userin, selectNaics_and_Datasystem2, "Include facilities with records in: ")
+      userin=addUserInput(file,userin, selectNaics_in_Datasystem1, "Match your NAICS code selection with: ")
       userin=addUserInput(file,userin, industryList,   "Industry/Industries: ")
       userin=addUserInput(file,userin, f1,  "Upload list of FRS IDs. Filename: ") #input$file_uploaded_FRS_IDs
       userin=addUserInput(file,userin, f2,  "Upload list of locations with lat lon coordinates. Filename: ") #input$file2 was old name # file_uploaded_latlons
