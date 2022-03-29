@@ -28,6 +28,6 @@
 #'   
 #'   See notes on cleaning up and changing the dataset starting from ejscreen::bg20 or bg21
 #'   
-#' @seealso \link{create_blockgroupstats}
+#'   see source code in EJAM::create_blockgroupstats
 #'   
 NULL

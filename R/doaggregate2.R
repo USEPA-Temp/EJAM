@@ -44,13 +44,10 @@
 #'
 doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculatedcols=NULL,  ...) {
   
-  # @param popmeancols   # **********************************************
-  # @param countcols vector of column names   # **********************************************
-  #
-  #  popmeancols=popmeancols_default, countcols=countcols_default, indicator_formulas=indicator_formulas_default
   
-  # HARDCODED FOR NOW:
+    # HARDCODED FOR NOW:
   # from EJSCREEN dataset, names as in ejscreen package:
+  # **** but we probably treat pctpre1960 as pop wtd mean like other Evars?
   
   if (is.null(countcols)) {
     countcols <- c(
@@ -70,6 +67,8 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
     # dput(c(ejscreen::names.d, 'flagged') )
     calculatedcols <- c("VSI.eo", "pctmin", "pctlowinc", "pctlths", "pctlingiso", "pctunder5", 
                         "pctover64", "flagged")
+    # These must be calculated after aggregating count variables and using those at siteid level. 
+    # Use ejscreen::ejscreenformulas$formula to calculate these.
   }
   if (is.null(popmeancols)) {
     # popmeancols <- c(ejscreen::names.ej, ejscreen::names.e) 
@@ -82,8 +81,15 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
                      "EJ.DISPARITY.proximity.npdes.eo", "pm", "o3", "cancer", "resp", 
                      "dpm", "pctpre1960", "traffic.score", "proximity.npl", "proximity.rmp", 
                      "proximity.tsdf", "proximity.npdes")
+    # *** we treat pctpre1960 as if can do popwtd avg, right? Technically pctpre1960 should use ejscreenformulas... ratio of sums of counts pre1960 and denom builtunits  
+    # only 3 of names.d are exactly popmeans,  ("pctmin", "pctunder5", "pctover64") since denominators are pop. 
+    #   May as well just calculate all of the names.d.pct exactly not some as popwtd mean and others not.
+    # flagged is a variable that maybe has an obvious single way to be aggregated for a buffer? 
+    # It could signal if any EJ>80 for avg person as avg of each EJ index for all residents in buffer, 
+    # (or alternatively could perhaps tell us if there is any flagged bg at all in buffer?).
   }  
   
+    
   # HANDLING DOUBLE COUNTING
   # Some steps are the same for overall and site-by-site so it is more efficient to do both together if want both. 
   # The uniqueonly parameter got removed from getrelevant... to be handled in doaggregate() 
@@ -171,20 +177,27 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   
   sites2bgs_overall <- sites2bgs_overall[blockgroupstats, , on=]
   
+  
+  
   # COUNTS OVERALL
   results_overall <- sites2bgs_overall[ , .(countcols = lapply(.SD, FUN = function(x) sum(x * bgwt, na.rm=TRUE))), .SDcols = countcols] 
   
   # COUNTS BY SITE
   results_bysite <- sites2bgs_overall[ , .(countcols = lapply(.SD, FUN = function(x) sum(x * bgwt, na.rm=TRUE))), by = siteid, .SDcols = countcols] 
-  
-  
+  # or is it like this...? ***************************
+  # sites2bg[, lapply(.SD, countcols   :=                                           sum(blockwt * blockgroupstats[,  countcols], na.rm=T)), by = .(siteid), .SDcols = countcols]  
+
+    
   # POPMEAN OVERALL
-  results_overall[ ,     .(popmeancols := lapply(.SD, FUN = function(x) FUN = weighted.mean(x, w = bgwt * pop, na.rm = TRUE))), .SDcols = popmeancols  ]
+  results_overall[ , .(popmeancols := lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE))), .SDcols = popmeancols  ]
   
   # POPMEAN BY SITE
-  results_bysite[  ,     .(popmeancols := lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE))), by = siteid, .SDcols = popmeancols]
+  results_bysite[  , .(popmeancols := lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE))), by = siteid, .SDcols = popmeancols]
+  # or is it like this...?? ***************************
+  # sites2bg[,           lapply(.SD, popmeancols := sum(pop * blockwt * blockgroupstats[,popmeancols], na.rm=T) / sum(pop * blockwt, na.rm=T)), by = .(siteid), .SDcols = popmeancols]
   
   
+  # next it needs 
   
   warning('work in progress stops here')  # 3############   code below is older 
   
@@ -194,21 +207,6 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   # 
   # # filter out any rows with missing values
   # facilities <- facilities[!is.na(facilities$LONG) & !is.na(facilities$LAT),]
-  # 
-  
-  ########### Get blockdata for the nearby blocks as listed in facilityblocks ###########
-  # 
-  # bdata <- data.table::as.data.table(blockdata[POP100 != 0 & Census2010Totalpop != 0, .(blockid, BLOCKGROUPFIPS, STUSAB, STATE, COUNTY, TRACT, BLKGRP, BLOCK, POP100, HU100, Census2010Totalpop)])
-  # data.table::setkey(bdata, "blockid")
-  # data.table::setkey(facilityblocks, "blockid")
-  # extendedfacilityblocks <- merge(facilityblocks, bdata)
-  # 
-  # ########### Get blockgroupstats (envt or demog indicators) for the nearby blocks  ###########
-  # blockgroupstats <- as.data.table(blockgroupstats)
-  # data.table::setkey(extendedfacilityblocks, "BLOCKGROUPFIPS")
-  # data.table::setkey(blockgroupstats, "BLOCKGROUPFIPS")
-  # extendedfacilityblocks_ext <- merge(extendedfacilityblocks, blockgroupstats)
-  
   
   ########### Create locations lookup   ###########
   # 
@@ -220,7 +218,7 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   # uniquelocationdata <- merge(uniquelocations, extendedfacilityblocks_ext, by = c("ID", "blockid"))
   # aux_locations <- data.table::as.data.table(uniquelocationdata[,.(ID, blockid, distance.x, BLOCKGROUPFIPS, STUSAB = STUSAB, STATE = statename, COUNTY, TRACT, BLKGRP, BLOCK, REGION)])
   
-  # through shapefile
+  ############ through shapefile
   # prime_locations <- merge_state_shapefiles(facilities, statesshp)
   # prime_locations <- data.table::as.data.table(prime_locations@data)
   
@@ -234,7 +232,7 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   # prime_locations <- data.table::as.data.table(prime_locations[,.(ID, blockid = NA, distance.x = NA, BLOCKGROUPFIPS = NA, STUSAB, STATE, COUNTY = NA, TRACT = NA, BLKGRP = NA, BLOCK = NA, REGION)] )
   # 
   # incompletes <- data.table::as.data.table(prime_locations[is.na(STUSAB),.(ID)])
-  # #just take those complete
+  # ################just take those complete
   # prime_locations <- prime_locations[!is.na(STUSAB),]
   # 
   # data.table::setkey(incompletes, "ID")
@@ -243,82 +241,26 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   # 
   # locations <- rbind(prime_locations, aux_locations)
   
-  ########### Create scoringweight = fraction of whole Blockgroup pop that is in a given block ###########
-  
-  # We want the fraction of total blockgroup pop to know how much weight to give each block in aggregating scores in a buffer
-  # and this scoringweight is correctly calculated here as comparing apples to apples, namely it is the
-  # block pop from Decennial census divided by total blockgroup pop according to that same Decennial census.
-  # (i.e., It is NOT the block's Decennial Census pop as fraction of ACS blockgroup pop used in EJSCREEN)
-  # 
-  # extendedfacilityblocks_ext[ , "scoringweight"] <- extendedfacilityblocks_ext$pop / extendedfacilityblocks_ext$Census2010Totalpop
-  # data.table::setkey(extendedfacilityblocks_ext, "ID")
-  
-  ########### Prepare to add outputs to global env  ###########
-  # 
-  #  THIS FUNCTION USES env HERE AS A WAY TO PUT VARIOUS VARIABLES INTO THE GLOBAL ENVIRONMENT SO THAT
-  #  THEY ARE AVAILABLE LATER FROM WITHIN ALL FUNCTIONS WITHOUT HAVING TO RETURN THAT DATA AS OUTPUT OF THIS FUNCTION, or having to later pass it to EACH FUNCTION THAT NEEDS IT:
-  #
-  # env <- globalenv() # The global environment .GlobalEnv, more often known as the user's workspace, is the first item on the search path. It can also be accessed by globalenv(). On the search path, each item's enclosure is the next item.
-  # 
-  #env$debug <- extendedfacilityblocks_ext
   
   ###################################################
-  
-  
-  
-  
-  
-  
-  
-  
-  ###################################################
-  #do post processing here REMEMBER NAMES HAVE POSSIBLY CHANGED
+  ###########   CALCULATE INDICATORS USING FORMULAS, BASED ON THE ROLLED UP COUNTS 
   # 
-  # #create demographic index
+  # ######### create demographic index
   # result[, "VSI.eo"] <- (result$pctmin + result$pctlowinc ) /2
-  # # #create supplemental demographic index
-  # # result[, "VSI.svi6"] <- (result$pctmin + result$pctlowinc + result$pctlths + result$pctlingiso + result$pctunder5 + result$pctover64 ) / 6
-  # #create EJ index traffic
+
+  # #create EJ indexes
   # result[, "inedx_EJ_Traffic"] <- result$traffic.score * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  # #create EJ index pm
-  # result[, "inedx_EJ_Lead"] <- result$pctpre1960 * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  # #create EJ index PM
-  # result[, "inedx_EJ_PM"] <- result$pm * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  # #create EJ index Ozone
-  # result[, "inedx_EJ_Ozone"] <- result$o3 * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  # #create EJ index Cancer
-  # result[, "inedx_EJ_Cancer"] <- result$cancer * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  # #create EJ index dpm
-  # result[, "inedx_EJ_DPM"] <- result$dpm * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  # #create EJ index resp
-  # result[, "inedx_EJ_Resp"] <- result$resp * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  # # ***
-  # #create EJ index neuro
-  # result[, "inedx_EJ_Neuro"] <- result$neuro * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  # #create EJ index proximity.tsdf
-  # result[, "inedx_EJ_proximity.tsdf"] <- result$proximity.tsdf * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  # #create EJ index proximity.rmp
-  # result[, "inedx_EJ_proximity.rmp"] <- result$proximity.rmp * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  # #create EJ index proximity.npl
-  # result[, "inedx_EJ_proximity.npl"] <- result$proximity.npl * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  # #create EJ index proximity.npdes
-  # result[, "inedx_EJ_proximity.npdes"] <- result$proximity.npdes * result$POP100 * (result$VSI.eo - National_Demographic_Index)
-  
-  
-  # 
-  # #merge geographic info
-  # data.table::setkey(result, "ID")
-  # data.table::setkey(locations, "ID")
-  # 
-  # result <- merge(result, locations)
+  # etc
   
   ###################################################
   
-  # #do lookups
+  ########### FIND PERCENTILES THOSE RAW SCORES REPRESENT 
+  #  VIA  lookup tables of US/State/Regional percentiles
   # lres <- data.table::as.data.table(lookup.pctile.US(result)) # ************
   # result <- cbind(result, lres)
   # 
-  # #now the same with states
+  # ###### old code used a loop through states 
+  
   # states <- unique(result$STUSAB) #recycled in the data
   # state_result <- list()
   # stateindex <- 1
@@ -330,12 +272,6 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   # }
   # result <- data.table::rbindlist(state_result)
   
-  
-  # 
-  # #merge facility lat long *************
-  # data.table::setkey(facilities, "ID")
-  # data.table::setkey(result, "ID")
-  # result <- merge(facilities, result, by="ID", all.x = TRUE)
   
   return(result)
 }

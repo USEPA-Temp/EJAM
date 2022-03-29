@@ -1,4 +1,4 @@
-create_blockgroupstats <- function(bg=ejscreen::bg20, demog=ejscreen::bg20DemographicSubgroups2014to2018, year=2020) {
+create_blockgroupstats <- function(bg=ejscreen::bg21, demog=ejscreen::bg21DemographicSubgroups2015to2019, year=2021) {
   ## script to create blockgroupstats.rda
   
   b2 <- bg # ejscreen::bg20 # EJAM::blockgroupstats) # work with it as a data.frame not data.table until a later step
@@ -22,7 +22,7 @@ create_blockgroupstats <- function(bg=ejscreen::bg20, demog=ejscreen::bg20Demogr
   names(b2) <- gsub('TSDF_CNT', 'count.TSDF', names(b2))
   
   # drop fields already in b2
-  subgroups <- demog #  ejscreen::bg20DemographicSubgroups2014to2018
+  subgroups <- demog #  ejscreen::bg20DemographicSubgroups2015to2019 for example
   subgroups$mins <- NULL
   subgroups$pctmin <- NULL
   subgroups$pop <- NULL

@@ -29,7 +29,6 @@ NOTE: It also has the race/ethnic subgroups that add up to minority or people of
   column names include bgfips, pop, pctlowinc, pcthisp, etc.
   
   See notes on cleaning up and changing the dataset starting from ejscreen::bg20 or bg21
-}
-\seealso{
-\link{create_blockgroupstats}
+  
+  see source code in EJAM::create_blockgroupstats
 }
