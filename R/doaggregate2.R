@@ -45,7 +45,7 @@
 doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculatedcols=NULL,  ...) {
   
   
-    # HARDCODED FOR NOW:
+  # HARDCODED FOR NOW:
   # from EJSCREEN dataset, names as in ejscreen package:
   # **** but we probably treat pctpre1960 as pop wtd mean like other Evars?
   
@@ -74,13 +74,18 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
     # popmeancols <- c(ejscreen::names.ej, ejscreen::names.e) 
     # or to avoid depending on ejscreen package, 
     # dput(c(ejscreen::names.ej, ejscreen::names.e) )
-    popmeancols <- c("EJ.DISPARITY.pm.eo", "EJ.DISPARITY.o3.eo", "EJ.DISPARITY.cancer.eo", 
-                     "EJ.DISPARITY.resp.eo", "EJ.DISPARITY.dpm.eo", "EJ.DISPARITY.pctpre1960.eo", 
-                     "EJ.DISPARITY.traffic.score.eo", "EJ.DISPARITY.proximity.npl.eo", 
-                     "EJ.DISPARITY.proximity.rmp.eo", "EJ.DISPARITY.proximity.tsdf.eo", 
-                     "EJ.DISPARITY.proximity.npdes.eo", "pm", "o3", "cancer", "resp", 
-                     "dpm", "pctpre1960", "traffic.score", "proximity.npl", "proximity.rmp", 
-                     "proximity.tsdf", "proximity.npdes")
+    popmeancols <- c(
+      "EJ.DISPARITY.pm.eo", "EJ.DISPARITY.o3.eo", 
+      "EJ.DISPARITY.cancer.eo", "EJ.DISPARITY.resp.eo", "EJ.DISPARITY.dpm.eo", 
+      "EJ.DISPARITY.pctpre1960.eo", 
+      "EJ.DISPARITY.traffic.score.eo", "EJ.DISPARITY.proximity.npl.eo", "EJ.DISPARITY.proximity.rmp.eo", "EJ.DISPARITY.proximity.tsdf.eo", "EJ.DISPARITY.proximity.npdes.eo", 
+      "EJ.DISPARITY.ust.eo", 
+      "pm", "o3", 
+      "cancer", "resp", "dpm", 
+      "pctpre1960", 
+      "traffic.score", "proximity.npl", "proximity.rmp", "proximity.tsdf", "proximity.npdes", 
+      "ust"
+    )
     # *** we treat pctpre1960 as if can do popwtd avg, right? Technically pctpre1960 should use ejscreenformulas... ratio of sums of counts pre1960 and denom builtunits  
     # only 3 of names.d are exactly popmeans,  ("pctmin", "pctunder5", "pctover64") since denominators are pop. 
     #   May as well just calculate all of the names.d.pct exactly not some as popwtd mean and others not.
@@ -89,7 +94,7 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
     # (or alternatively could perhaps tell us if there is any flagged bg at all in buffer?).
   }  
   
-    
+  
   # HANDLING DOUBLE COUNTING
   # Some steps are the same for overall and site-by-site so it is more efficient to do both together if want both. 
   # The uniqueonly parameter got removed from getrelevant... to be handled in doaggregate() 
@@ -142,10 +147,10 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   # was going to try to do join of weights and the aggregation by blockid all in this one step? but not tested 
   # and may need to do intermed step 1st, where 
   # sites2bg <- blockwts[sites2blocks, .(siteid, bgfips, distance, bgwt = sum(blockwt, na.rm=TRUE)), on = 'blockid', by =.(siteid, bgfips)] 
-
+  
   ## why do sum(blockwt) by bgfips  here AGAIN, if already did it above?
   
-    # rollup as blockgroups - Aggregate blocks into blockgroups, per siteid ***  #######################################
+  # rollup as blockgroups - Aggregate blocks into blockgroups, per siteid ***  #######################################
   # Calc bgwt, the fraction of each (parent)blockgroup's censuspop that is in buffer
   sites2bgs_overall <- sites2blocks_overall[ , .(bgwt = sum(blockwt)), by=bgfips ]
   sites2bgs_bysite  <- sites2blocks[ , .(bgwt = sum(blockwt, na.rm = TRUE)), by=.(siteid, bgfips)]
@@ -154,7 +159,7 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   sites2bgs_bysite[ , sitecount_near_bg := length(unique(siteid)), by=bgfips] 
   #slow!:
   if (!testing) {rm(sites2blocks); gc()} # unless need save that to analyze distance distribution 
-
+  
   
   #  Maybe want some extra summary stats across people and sites (about the distribution), one column per indicator. 
   #  BUT MOST OF THE INTERESTING STATS LIKE MEDIAN PERSON'S SCORE, OR WORST BLOCKGROUP, 
@@ -163,48 +168,217 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   
   
   
-  # 2) *** JOIN *** the midsized intermed table to blockgroupstats   ################################
+  # 2) *** JOIN *** the midsized intermed table to blockgroupstats ... sites2bgs_overall ??  ################################
   
-   
+  
   
   #    NEEED TO DO JOIN HERE OF **blockgroupstats**   200 columns, on bgid 
   
   
+  ######################################################
+  # CALCULATE TOTALS FOR COUNT VARIABLES WITHIN EACH SITE OR BUFFER & OVERALL (POPULATION, 
+  # AND ALSO SUBGROUPS IF WANT TO 
+  #  USE FORMULAS TO GET EXACT %D AT EACH SITE AS SUM OF NUMERATORS / SUM OF DENOMINATORS)
+  ######################################################
   
   countcols <- c('pop', 'mins', ejscreen::names.d.subgroups.count) # examples 
   popmeancols <- c(names.e, names.ej) # we want the raw scores only for EJ and E, or pct only for demog.
-  calculatedcols <- names.d # use formulas for these
+  calculatedcols <- c(names.d, names.d.subgroups) # use formulas for these
   
-  sites2bgs_overall <- sites2bgs_overall[blockgroupstats, , on=]
-  
-  
+  # sites2bgs_overall <- sites2bgs_overall[blockgroupstats, , on=]
   
   # COUNTS OVERALL
   results_overall <- sites2bgs_overall[ , .(countcols = lapply(.SD, FUN = function(x) sum(x * bgwt, na.rm=TRUE))), .SDcols = countcols] 
   
   # COUNTS BY SITE
-  results_bysite <- sites2bgs_overall[ , .(countcols = lapply(.SD, FUN = function(x) sum(x * bgwt, na.rm=TRUE))), by = siteid, .SDcols = countcols] 
+  results_bysite <- sites2bgs_bysite[ , .(countcols = lapply(.SD, FUN = function(x) sum(x * bgwt, na.rm=TRUE))), by = siteid, .SDcols = countcols] 
   # or is it like this...? ***************************
-  # sites2bg[, lapply(.SD, countcols   :=                                           sum(blockwt * blockgroupstats[,  countcols], na.rm=T)), by = .(siteid), .SDcols = countcols]  
-
-    
-  # POPMEAN OVERALL
-  results_overall[ , .(popmeancols := lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE))), .SDcols = popmeancols  ]
+  # sites2bg[, lapply(.SD, countcols   :=     sum(blockwt * blockgroupstats[,  countcols], na.rm=T)), by = .(siteid), .SDcols = countcols]  
   
-  # POPMEAN BY SITE
+  ######################################################
+  # CALCULATE POPULATION WEIGHTED MEANS FOR SOME VARIABLES ( ENVT, ... AND MAYBE ALL THE DEMOG TOO???)
+  ######################################################
+  
+  # POP wtd MEAN OVERALL
+  results_overall[ , .(popmeancols := lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE))), .SDcols = popmeancols  ]
+  # **********THIS NOW SHOULD HAVE ONE ROW ONLY? 
+  
+  # POP wtd MEAN BY SITE
   results_bysite[  , .(popmeancols := lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE))), by = siteid, .SDcols = popmeancols]
   # or is it like this...?? ***************************
   # sites2bg[,           lapply(.SD, popmeancols := sum(pop * blockwt * blockgroupstats[,popmeancols], na.rm=T) / sum(pop * blockwt, na.rm=T)), by = .(siteid), .SDcols = popmeancols]
+  # *******THIS NOW SHOULD HAVE ONE ROW PER BLOCKGROUP?
+  
+  ######################################################
+  # and/or if some variables have to be calculated using formulas, can do that using the list of formulas and this function:
+  ######################################################
+  
+  #   CALCULATE INDICATORS USING FORMULAS, BASED ON THE ROLLED UP COUNTS
+  # this was meant to handle multiple columns (formula for each new one) for many rows (and here in buffer results, one site is a row, not one blockgroup) 
+  
+  myformulas = ejscreen::ejscreenformulas
+  
+  # one row per buffer/site?  
+  results_bysite_formulas_done <- ejscreen::ejscreen.acs.calc(bg = results_bysite[ , calculatedcols], keep.old = 'all', keep.new = 'all', formulas = myformulas)
+  
+  # just one row?
+  
+  results_overall_formulas_done  <- ejscreen::ejscreen.acs.calc(bg = results_overall[ , calculatedcols], keep.old = 'all', keep.new = 'all', formulas = myformulas)
+  
+  ######################################################
+  # FIND PERCENTILES THOSE RAW SCORES REPRESENT 
+  #  VIA  lookup tables of US/State  percentiles
+  ######################################################
+  
+  ejanalysis::lookup.pctile(results_bysite[, varsneedpctiles[i]], varname.in.lookup.table = varsneedpctiles[i], lookup = lookup.pctile.US) 
+  ejanalysis::lookup.pctile(c(1000, 3000), varname.in.lookup.table = 'traffic.score',
+                            #'       lookup = lookupStates19, zone = 'NY')
+  
+  # lookup.pctile.US
+  
+  # EJSCREENbatch code took weighted mean of data within each buffer (shape_ID) for these indicators:
+  # 
+  # Extract key variables, take ***pop-weighted*** average
+  # df.var.wm <-list_data %>%
+  #   as.data.frame() %>%
+  #   dplyr::select(shape_ID, ACSTOTPOP, PM25, OZONE, DSLPM, CANCER,
+  #                 RESP, PTRAF, PNPL, PRMP, PRE1960PCT, PTSDF, PWDIS,
+  #                 VULEOPCT, MINORPCT, LOWINCPCT, UNDER5PCT,LESSHSPCT,
+  #                 OVER64PCT, LINGISOPCT, med_inc, frac_white, frac_black,
+  #                 frac_amerind, frac_asian, frac_pacisl, frac_hisp, 
+  #                 frac_pov50, frac_pov99) %>%
+  #   dplyr::group_by(shape_ID) %>%
+  #   dplyr::summarize(across(PM25:frac_pov99, ~weighted.mean(., w = ACSTOTPOP, na.rm = T)))
+  # # 
+  # 
+  # # ...
+  # 
+  #   EJSCREENbatch code uses ecdf function here on the entire ejscreen dataset each time??, 
+  #  to estimate US AND THEN STATE percentiles
+  # 
+  # #Rejoin, then calculate nat'l percentiles
+  # df.var.wm <- df.var.wm %>%
+  #   dplyr::left_join(df.var.state, by = 'shape_ID') %>%
+  #   dplyr::mutate(across(PM25:LINGISOPCT,
+  #                        list(~round(ecdf(ejscreen_data %>%
+  #                                           as.data.frame() %>%
+  #                                           dplyr::select(cur_column()) %>%
+  #                                           unlist() %>%
+  #                                           as.numeric())(.)*100
+  #                                    ,0)),
+  #                        # list(~ntile(., 100)),
+  #                        .names="P_{.col}_US")) %>%
+  #   dplyr::mutate(across(med_inc:frac_pov99,
+  #                        list(~round(ecdf(acs_data %>%
+  #                                           as.data.frame() %>%
+  #                                           dplyr::select(cur_column()) %>%
+  #                                           unlist() %>%
+  #                                           as.numeric())(.)*100
+  #                                    ,0)),
+  #                        .names="P_{.col}_US"))
+  # 
+  # #Calculate state percentiles
+  # states <- na.omit(unique(df.var.wm$ST_ABBREV))
+  # temp_state <- lapply(states, function(x){
+  #   ti2 <- df.var.wm %>%
+  #     dplyr::filter(ST_ABBREV==x) %>%
+  #     dplyr::filter(!is.na(shape_ID))  %>%
+  #     dplyr::mutate(across(PM25:LINGISOPCT,
+  #                          list(~round(ecdf(na.omit(ejscreen_data %>%
+  #                                                     as.data.frame() %>%
+  #                                                     dplyr::filter(ST_ABBREV==x) %>%
+  #                                                     dplyr::select(cur_column()) %>%
+  #                                                     unlist() %>%
+  #                                                     as.numeric()))(.)*100
+  #                                      ,0)),
+  #                          .names="P_{.col}_state")) %>%
+  #     dplyr::mutate(across(med_inc:frac_pov99,
+  #                          list(~round(ecdf(na.omit(acs_data %>%
+  #                                                     as.data.frame() %>%
+  #                                                     dplyr::filter(state==x) %>%
+  #                                                     dplyr::select(cur_column()) %>%
+  #                                                     unlist() %>%
+  #                                                     as.numeric()))(.)*100
+  #                                      ,0)),
+  #                          .names="P_{.col}_state"))
+  # })
+  
+  # ow code to name all the percentile columns
+  #
+  # df.var.wm <- data.table::rbindlist(temp_state) %>%
+  #   dplyr::rename_at(vars(rename_cols), ~paste0('P_',all_of(rename_cols),'_raw')) %>%
+  #   tidyr::pivot_longer(cols=starts_with("P_"),
+  #                       names_to="variable",
+  #                       values_to = "value") %>%
+  #   dplyr::mutate(variable=stringi::stri_replace_last_fixed(variable,'_','.')) %>%
+  #   tidyr::separate(variable, into=c("variable","geography"), sep="\\.",extra="merge", fill = "left")   %>%
+  #   tidyr::pivot_wider(names_from = c(variable)) %>%
+  #   dplyr::rename(Lead         = P_PRE1960PCT,
+  #                 'Diesel PM'         = P_DSLPM,
+  #                 'Air, Cancer'       = P_CANCER,
+  #                 'Resp. Hazard'      = P_RESP,
+  #                 'Traffic'           = P_PTRAF,
+  #                 'WW Discharge'      = P_PWDIS,
+  #                 'NPL'               = P_PNPL,
+  #                 'RMP Facility'      = P_PRMP,
+  #                 'TSD Facility'      = P_PTSDF,
+  #                 'Ozone'             = P_OZONE,
+  #                 'PM'                = P_PM25,
+  #                 'Demo. Index'       = P_VULEOPCT,
+  #                 Minority            = P_MINORPCT,
+  #                 'Low Income'        = P_LOWINCPCT,
+  #                 'Less HS Educ'      = P_LESSHSPCT,
+  #                 'Ling. Isol.'       = P_LINGISOPCT,
+  #                 'Age Under 5'       = P_UNDER5PCT,
+  #                 'Age Over 64'       = P_OVER64PCT,
+  #                 'Median Income'     = P_med_inc,
+  #                 'Caucasian (%)'     = P_frac_white,
+  #                 'Black (%)'         = P_frac_black,
+  #                 'Amer. Ind. (%)'    = P_frac_amerind,
+  #                 'Asian (%)'         = P_frac_asian,
+  #                 'Pac. Isl (%)'      = P_frac_pacisl,
+  #                 'Hispanic (%)'      = P_frac_hisp,
+  #                 '<50% P.L. (%)'     = P_frac_pov50,
+  #                 '<100% P.L. (%)'    = P_frac_pov99) %>%
+  #   dplyr::select(-ST_ABBREV)
+  # 
+  # OW code to sum count of population at each site?
+  # 
+  # # Sum of population w/in 5miles
+  # df.pop.sum <- list_data %>%
+  #   dplyr::select(ACSTOTPOP, shape_ID) %>%
+  #   dplyr::rename(`Pop. Count` = ACSTOTPOP) %>%
+  #   dplyr::group_by(shape_ID) %>%
+  #   dplyr::summarize_at(vars(`Pop. Count`),funs(sum))
+  # 
+  # Need lat/lon, (previously: URL to the facility's DFR)
+  # df.latlon <- facil_data %>%
+  #   dplyr::select(shape_ID, geometry) %>%
+  #   sf::st_transform(crs = 4326)
+  # 
+  # Merge all together
+  # together.sf <- dplyr::inner_join(df.var.wm, df.pop.sum, by = "shape_ID") %>%
+  #   dplyr::inner_join(df.latlon, by = 'shape_ID') %>%
+  #   dplyr::relocate(shape_ID, `Pop. Count`,
+  #                   `Low Income`, `Minority`, `Less HS Educ`, `Ling. Isol.`,
+  #                   `Age Under 5`, `Age Over 64`, `Air, Cancer`, `Diesel PM`,
+  #                   Lead, Ozone, PM, NPL, `RMP Facility`, Traffic, `TSD Facility`,
+  #                   `WW Discharge`, `Resp. Hazard` )
+  # 
   
   
-  # next it needs 
   
-  warning('work in progress stops here')  # 3############   code below is older 
+  
+  
+  warning('work in progress stops here')  # ############   code below is older 
+  
   
   results <- list(results_overall = results_overall, results_bysite = results_bysite)
   
   
-  # 
+  return(results)
+  
+  
   # # filter out any rows with missing values
   # facilities <- facilities[!is.na(facilities$LONG) & !is.na(facilities$LAT),]
   
@@ -247,7 +421,7 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   # 
   # ######### create demographic index
   # result[, "VSI.eo"] <- (result$pctmin + result$pctlowinc ) /2
-
+  
   # #create EJ indexes
   # result[, "inedx_EJ_Traffic"] <- result$traffic.score * result$POP100 * (result$VSI.eo - National_Demographic_Index)
   # etc
@@ -272,6 +446,4 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   # }
   # result <- data.table::rbindlist(state_result)
   
-  
-  return(result)
 }

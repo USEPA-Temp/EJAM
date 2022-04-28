@@ -1,5 +1,41 @@
 if (1 == 0 ) {
   
+  # Maybe want to use the official EJScreen block weights numbers from here:
+  # 
+  # Description: Centroids with statistic weight factors 
+  #   for both 2010 Census SF3 and 2012 ACS, block level
+  # 
+  # Layer: SF1_2010_BK_WEIGHT (ID: 71)
+  # Name: SF1_2010_BK_WEIGHT
+  # Display Field: GEOID10
+  # Type: Feature Layer
+  # Geometry Type: esriGeometryPoint
+  # MaxRecordCount: 1000    "capabilities": "Map,Query,Data",
+  # Supported Query Formats: JSON, geoJSON
+  # https://ejscreen.epa.gov/arcgis/rest/services/ejscreen/ejquery/MapServer/71
+  # Fields:
+  # OBJECTID ( type: esriFieldTypeOID, alias: OBJECTID )
+  # Shape ( type: esriFieldTypeGeometry, alias: Shape )
+  # ***   GEOID10 ( type: esriFieldTypeString, alias: GEOID10, length: 15 )
+  # ***   POP_WEIGHT ( type: esriFieldTypeDouble, alias: POP_WEIGHT )
+  # HOU_WEIGHT ( type: esriFieldTypeDouble, alias: HOU_WEIGHT )
+  # STCNTRBG10 ( type: esriFieldTypeString, alias: STCNTRBG10, length: 12 )
+  # STCNTRBG12 ( type: esriFieldTypeString, alias: STCNTRBG12, length: 12 )
+  # AREA_WEIGHT ( type: esriFieldTypeDouble, alias: AREA_WEIGHT )
+  # POP_WEIGHT12 ( type: esriFieldTypeDouble, alias: POP_WEIGHT12 )
+  # HOU_WEIGHT12 ( type: esriFieldTypeDouble, alias: HOU_WEIGHT12 )
+  # STCNTRBG14 ( type: esriFieldTypeString, alias: STCNTRBG14, length: 12 )
+  # POP_WEIGHT14 ( type: esriFieldTypeDouble, alias: POP_WEIGHT14 )
+  # HOU_WEIGHT14 ( type: esriFieldTypeDouble, alias: HOU_WEIGHT14 )
+  # AREA_WEIGHT14 ( type: esriFieldTypeDouble, alias: AREA_WEIGHT14 )
+  # STCNTRBG15 ( type: esriFieldTypeString, alias: STCNTRBG15, length: 12 )
+  # POP_WEIGHT15 ( type: esriFieldTypeDouble, alias: POP_WEIGHT15 )
+  # HOU_WEIGHT15 ( type: esriFieldTypeDouble, alias: HOU_WEIGHT15 )
+  # AREA_WEIGHT15 ( type: esriFieldTypeDouble, alias: AREA_WEIGHT15 )
+  # PLFIPS ( type: esriFieldTypeString, alias: PLFIPS, length: 7 )
+  # NEAR_FID ( type: esriFieldTypeInteger, alias: NEAR_FID )
+  # NEAR_DIST ( type: esriFieldTypeDouble, alias: NEAR_DIST )
+  
   #######################################
   # BUFFER STATS FOR COUNTS:
   #   
