@@ -2,7 +2,7 @@
 % Please edit documentation in R/lookup.pctile.US.R
 \name{lookup.pctile.US}
 \alias{lookup.pctile.US}
-\title{look up table to find percentile that a raw score is at within USA}
+\title{look up in a table to find percentile that a raw score is at within USA}
 \usage{
 lookup.pctile.US(
   data,
@@ -34,7 +34,6 @@ lookup.pctile.US(
 }
 \value{
 data.table of 100 percentiles and mean (in rows) for each indicator (in columns)
-inedx_EJ_Neuro',
 }
 \description{
 Still needs to have in global envt statestats, regionstats, or usastats depending on geolevel -
@@ -42,7 +41,20 @@ Still needs to have in global envt statestats, regionstats, or usastats dependin
 }
 \details{
 CURRENTLY HARD CODED TO USE THESE SPECIFIC FIELDS - NEEDS TO BE MADE GENERIC.
+
   This should be about the same as ejanalysis::lookup.pctile()
   using lookup tables from something like ejscreen::ejscreen.lookuptables()
   See user ejanalysis, ejscreen and ejanalysis packages on GitHub
+  e.g.,  state.pctiles[,i] <- lookup.pctile(myvector = bg[,names.e[i]], varname.in.lookup.table = names.e[i],
+         lookup = lookupStates, zone = bg$ST) 
+  
+> library(ejanalysis)
+> library(ejscreen)
+> library(analyze.stuff)
+> x <- write.wtd.pctiles(blockgroupstats21[ , c(names.d, names.d.subgroups, names.e, names.ej)], wts = blockgroupstats21$pop,  filename = 'lookupUSA21.csv')
+Error in approx(w$ecdf, w$x, xout = probs, rule = 2) : 
+  need at least two non-NA values to interpolate
+In addition: Warning message:
+  In xy.coords(x, y, setLab = FALSE) : NAs introduced by coercion
+Called from: approx(w$ecdf, w$x, xout = probs, rule = 2)
 }

@@ -230,10 +230,12 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   #  VIA  lookup tables of US/State  percentiles
   ######################################################
   
-  ejanalysis::lookup.pctile(results_bysite[, varsneedpctiles[i]], varname.in.lookup.table = varsneedpctiles[i], lookup = lookup.pctile.US) 
-  ejanalysis::lookup.pctile(c(1000, 3000), varname.in.lookup.table = 'traffic.score',
-                            #'       lookup = lookupStates19, zone = 'NY')
+  # ejanalysis::lookup.pctile(results_bysite[, varsneedpctiles[i]], varname.in.lookup.table = varsneedpctiles[i], lookup = lookup.pctile.US) 
+  # ejanalysis::lookup.pctile(c(1000, 3000), varname.in.lookup.table = 'traffic.score',
+  #   lookup = lookupStates19, zone = 'NY')
+
   
+    
   # lookup.pctile.US
   
   # EJSCREENbatch code took weighted mean of data within each buffer (shape_ID) for these indicators:
