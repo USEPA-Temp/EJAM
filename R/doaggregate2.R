@@ -45,48 +45,66 @@
 doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculatedcols=NULL,  ...) {
   
   
-  # HARDCODED FOR NOW:
+  # HARDCODED blockgroup dataset and variable names, FOR NOW:  ####
+  
+  blockgroupstats <- ejscreen::bg21plus; blockgroupstats$bgfips <- blockgroupstats$FIPS
+  setDT(blockgroupstats, key = c('bgfips'))
+  
   # from EJSCREEN dataset, names as in ejscreen package:
   # **** but we probably treat pctpre1960 as pop wtd mean like other Evars?
   
   if (is.null(countcols)) {
+    # # note that names.d.count was not yet defined in ejscreen pkg, and would lack denominators if only based on pctxyz
+    # names.d.count <- union( gsub('pct','', grep(pattern = 'pct', ejscreen::names.d, value=TRUE)),
+    #  c('unemployed', 'unemployedbase'))
+    # names.d.count <- gsub('^min$', 'mins', names.d.count) # since singular was used in pctmin but plural for count is mins
+    # countcols <- unique(c('pop', 'nonmins', names.d.count,
+    #                "povknownratio",  "age25up", "hhlds",  'pre1960', 'builtunits',
+    #                ejscreen::names.d.subgroups.count)) 
+    
     countcols <- c(
-      "pop", "mins", 'nonmins',
-      "lowinc", "povknownratio",   
-      "lths", "age25up", 
-      "lingiso", "hhlds", 
+      "pop", 'nonmins', "mins", 
+      "lowinc",   "povknownratio",   
+      "lths",     "age25up", 
+      "lingiso",  "hhlds", 
       "under5", "over64",
-      "unemployed","unemployedbase",
-      'pre1960','builtunits',
-      "nhwa", "hisp", "nhba", "nhaa", "nhaiana", "nhnhpia", "nhotheralone", "nhmulti"
+      "unemployed",   "unemployedbase", # new in 2022
+      'pre1960',  'builtunits',
+      "nhwa", "hisp", "nhba", "nhaa", "nhaiana", "nhnhpia", "nhotheralone", "nhmulti" # not in EJScreen 2.0 but will use here
     )
+    
   }  
   if (is.null(calculatedcols)) {
-    # calculatedcols <- c(ejscreen::names.d, 'flagged') 
-    # or to avoid depending on ejscreen package, 
-    # dput(c(ejscreen::names.d, 'flagged') )
-    calculatedcols <- c("VSI.eo", "pctmin", "pctlowinc", "pctlths", "pctlingiso", "pctunder5", 
-                        "pctover64", "flagged")
+    # calculatedcols <- c(ejscreen::names.d, ejscreen::names.d.subgroups, 'flagged') # use formulas for these
+    #  or to avoid depending on ejscreen package, 
+    #  dput(c(ejscreen::names.d, ejscreen::names.d.subgroups, 'flagged')) # but make sure pctunemployed got added
+    
+    calculatedcols <- c(
+      "VSI.eo", "pctmin", "pctlowinc", "pctlths", "pctlingiso", "pctunder5", "pctover64", 'pctunemployed',
+      "pctnhwa", "pcthisp", "pctnhba", "pctnhaa", "pctnhaiana", "pctnhnhpia", "pctnhotheralone", "pctnhmulti", 
+      "flagged"
+      )
+    
     # These must be calculated after aggregating count variables and using those at siteid level. 
-    # Use ejscreen::ejscreenformulas$formula to calculate these.
+    # e.g. Use ejscreen::ejscreenformulas$formula to calculate these.
   }
   if (is.null(popmeancols)) {
-    # popmeancols <- c(ejscreen::names.ej, ejscreen::names.e) 
+    # popmeancols <- c(ejscreen::names.e, ejscreen::names.ej)
     # or to avoid depending on ejscreen package, 
-    # dput(c(ejscreen::names.ej, ejscreen::names.e) )
+    # dput(c(ejscreen::names.e, ejscreen::names.ej) )
+    
     popmeancols <- c(
-      "EJ.DISPARITY.pm.eo", "EJ.DISPARITY.o3.eo", 
-      "EJ.DISPARITY.cancer.eo", "EJ.DISPARITY.resp.eo", "EJ.DISPARITY.dpm.eo", 
-      "EJ.DISPARITY.pctpre1960.eo", 
-      "EJ.DISPARITY.traffic.score.eo", "EJ.DISPARITY.proximity.npl.eo", "EJ.DISPARITY.proximity.rmp.eo", "EJ.DISPARITY.proximity.tsdf.eo", "EJ.DISPARITY.proximity.npdes.eo", 
-      "EJ.DISPARITY.ust.eo", 
-      "pm", "o3", 
-      "cancer", "resp", "dpm", 
-      "pctpre1960", 
-      "traffic.score", "proximity.npl", "proximity.rmp", "proximity.tsdf", "proximity.npdes", 
-      "ust"
+      "pm", "o3", "cancer", "resp", "dpm", 
+      "pctpre1960", "traffic.score", 
+      "proximity.npl", "proximity.rmp", "proximity.tsdf", "proximity.npdes", 
+      "ust", 
+      "EJ.DISPARITY.pm.eo", "EJ.DISPARITY.o3.eo", "EJ.DISPARITY.cancer.eo", "EJ.DISPARITY.resp.eo", "EJ.DISPARITY.dpm.eo", 
+      "EJ.DISPARITY.pctpre1960.eo", "EJ.DISPARITY.traffic.score.eo", 
+      "EJ.DISPARITY.proximity.npl.eo", "EJ.DISPARITY.proximity.rmp.eo", "EJ.DISPARITY.proximity.tsdf.eo", "EJ.DISPARITY.proximity.npdes.eo", 
+      "EJ.DISPARITY.ust.eo"
     )
-    # *** we treat pctpre1960 as if can do popwtd avg, right? Technically pctpre1960 should use ejscreenformulas... ratio of sums of counts pre1960 and denom builtunits  
+    
+    # ** CHECK THIS:  EJScreen treats pctpre1960 as if can do popwtd avg, right? Technically pctpre1960 should use ejscreenformulas... ratio of sums of counts pre1960 and denom builtunits  
     # only 3 of names.d are exactly popmeans,  ("pctmin", "pctunder5", "pctover64") since denominators are pop. 
     #   May as well just calculate all of the names.d.pct exactly not some as popwtd mean and others not.
     # flagged is a variable that maybe has an obvious single way to be aggregated for a buffer? 
@@ -115,6 +133,7 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
     
     # FOR TESTING 
     library(data.table); library(blockdata); data("blockwts")
+    
     data('sites2blocks_example') # it is called  sites2blocks_example
     sites2blocks <- sites2blocks_example 
   }
@@ -129,18 +148,31 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   
   # blocks #######################################
   
-  # get weights for nearby blocks
+  # get weights for nearby blocks ####
   # sites2blocks <- merge(sites2blocks, blockwts, by='blockid', all.x	=TRUE, all.y=FALSE) # incomparables=NA
   sites2blocks <- blockwts[sites2blocks, .(siteid,blockid,distance,blockwt,bgfips), on='blockid']
-  # rm(blockwts) #; gc()  # drop 6m row block table to save RAM # does not seem to be loaded to do that??
   
-  # optional: Calc # of sites nearby each block: How many of these sites are near this resident? this bg? avg resident overall? 
+  # optional: Calc # of sites nearby each block: #### 
+  # How many of these sites are near this resident? this bg? avg resident overall? 
   sites2blocks[, sitecount_near_block := .N, by=blockid] # (must use the table with duplicate blocks, not unique only)
   
-  # drop duplicate blocks, which are residents near 2 or more sites, to avoid double-counting them
-  sites2blocks_overall <- unique(sites2blocks, by="blockid")
+  # *** Get overall stats counting each block once #### 
+  # and thus each person only once even if near 2+ sites, 
+  # For each overall resident (blockid) near 1 or more sites, 
+  # find and save the info for just the closest single siteid.
+  # ***    Just for now, The simplistic way to drop duplicate blocks (even if other columns are not duplicates), 
+  #    which are residents near 2 or more sites, to avoid double-counting them, is this:
+  sites2blocks_overall <- unique(sites2blocks, by="blockid") 
+  # But note that would just pick the first instance found of a given blockid, regardless of which siteid that was for,
+  # so it retains whatever distance happened to be the one found first, and same for all site characteristics.
+  # *** We actually instead want to save the shortest distance for that blockid, as the worst case proximity
+  # to be able to have summary stats by group of distance to the closest site, not to a random site among those nearby. 
+  # What is the efficient way to find that?
   
-  # Calc avg person's proximity (block-level), by bg: censuspop-wtd mean of block-specific distances, for each bg 
+  
+  
+  # Calc avg person's proximity (block-level), by bg: #### 
+  #  censuspop-wtd mean of block-specific distances, for each bg 
   sites2blocks_overall[, bg_fraction_in_buffer_overall := sum(blockwt), by=bgfips]  
   sites2blocks[, bg_fraction_in_buffer_bysite := sum(blockwt), by=c('bgfips', 'siteid')]
   
@@ -149,96 +181,206 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   # sites2bg <- blockwts[sites2blocks, .(siteid, bgfips, distance, bgwt = sum(blockwt, na.rm=TRUE)), on = 'blockid', by =.(siteid, bgfips)] 
   
   ## why do sum(blockwt) by bgfips  here AGAIN, if already did it above?
+  rm(blockwts) ; gc()  # drop 6m row block table to save RAM # does not seem to be loaded to do that??
+  
   
   # rollup as blockgroups - Aggregate blocks into blockgroups, per siteid ***  #######################################
-  # Calc bgwt, the fraction of each (parent)blockgroup's censuspop that is in buffer
+  
+  # Calc bgwt, the fraction of each (parent)blockgroup's censuspop that is in buffer #### 
   sites2bgs_overall <- sites2blocks_overall[ , .(bgwt = sum(blockwt)), by=bgfips ]
   sites2bgs_bysite  <- sites2blocks[ , .(bgwt = sum(blockwt, na.rm = TRUE)), by=.(siteid, bgfips)]
   
-  # optional: Calc maybe # of unique sites nearby each blockgroup
+  # optional: Calc maybe # of unique sites nearby each blockgroup #### 
   sites2bgs_bysite[ , sitecount_near_bg := length(unique(siteid)), by=bgfips] 
-  #slow!:
-  if (!testing) {rm(sites2blocks); gc()} # unless need save that to analyze distance distribution 
+  
+  # how many blockgroups here were found near 1, 2, or 3 sites? e.g., 6k bg were near only 1/100 sites tested, 619 near 2, 76 bg had 3 of the 100 sites nearby.
+  # table(table(sites2bgs_bysite$bgfips))
+  
+  # COULD TRY TO REMOVE sites2blocks and sites2blocks_overall NOW TO FREE UP RAM, BUT THAT IS slow!:
+  # if (!testing) {rm(sites2blocks); gc()} # unless need save that to analyze distance distribution 
   
   
   #  Maybe want some extra summary stats across people and sites (about the distribution), one column per indicator. 
-  #  BUT MOST OF THE INTERESTING STATS LIKE MEDIAN PERSON'S SCORE, OR WORST BLOCKGROUP, 
+  # *****  BUT MOST OF THE INTERESTING STATS LIKE MEDIAN PERSON'S SCORE, OR WORST BLOCKGROUP, 
   #  HAVE TO BE CALCULATED FROM BG DATA BEFORE WE AGGREGATE WITHIN EACH SITE (BUFFER)... 
   #  Same for sites: worst site as measured by highest nearby blockgroup-level %poor needs raw bg data before summarized by siteid.
   
   
   
+  ##################################################### #
   # 2) *** JOIN *** the midsized intermed table to blockgroupstats ... sites2bgs_overall ??  ################################
+  ##################################################### #
+  
+  # countcols  # like population count, add up within a buffer
+  # popmeancols  # we want average persons raw score,  for Environmental and EJ indexes
+  # calculatedcols  # use formulas for these, like  sum of counts of lowincome divided by sum of counts of those with known poverty ratio (universe)
+  
+  # DO JOIN  OF **blockgroupstats**   200 columns, on bgid , 
+  # and not sure I can calculate results at same time, since this kind of join is getting a subset of blockgroupstats but grouping by sites2bgs_bysite$siteid  and 
+  # maybe cannot use blockgroupstats[sites2bgs_bysite,    by=.(siteid)    since siteid is in sites2bgs_bysite not in blockgroupstats table. 
+  # So, first join blockgroupstats necessary variables to the shorter sites2bgs_bysite:   
+  # about 29 bg did not match on bgfips due to changes in codes as used by bg21 vs blockpoints dataset used in EJAM as of May 2022.
+  
+  sites2bgs_plusblockgroupdate_bysite  <- merge(sites2bgs_bysite,  
+                                                blockgroupstats[ , c('bgfips', ..countcols, ..popmeancols, ..calculatedcols)], 
+                                                all.x = TRUE, all.y=FALSE, by='bgfips')  
+  sites2bgs_plusblockgroupdate_overall <- merge(sites2bgs_overall, 
+                                                blockgroupstats[ , c('bgfips', ..countcols, ..popmeancols, ..calculatedcols)], 
+                                                all.x = TRUE, all.y=FALSE, by='bgfips') 
   
   
-  
-  #    NEEED TO DO JOIN HERE OF **blockgroupstats**   200 columns, on bgid 
-  
-  
-  ######################################################
+  ##################################################### #
   # CALCULATE TOTALS FOR COUNT VARIABLES WITHIN EACH SITE OR BUFFER & OVERALL (POPULATION, 
   # AND ALSO SUBGROUPS IF WANT TO 
   #  USE FORMULAS TO GET EXACT %D AT EACH SITE AS SUM OF NUMERATORS / SUM OF DENOMINATORS)
-  ######################################################
+  ##################################################### #
   
-  countcols <- c('pop', 'mins', ejscreen::names.d.subgroups.count) # examples 
-  popmeancols <- c(names.e, names.ej) # we want the raw scores only for EJ and E, or pct only for demog.
-  calculatedcols <- c(names.d, names.d.subgroups) # use formulas for these
+  # COUNTS OVERALL  ####
+  results_overall <- sites2bgs_plusblockgroupdate_overall[ ,  lapply(.SD, FUN = function(x) round(sum(x * bgwt, na.rm=TRUE), 1) ), .SDcols = countcols ]
   
-  # sites2bgs_overall <- sites2bgs_overall[blockgroupstats, , on=]
+  # cbind(sum = prettyNum(results_overall,big.mark = ','))
+  # versus if you did not remove duplicate places/people:
+  # sites2bgs_plusblockgroupdate_bysite[ ,  .(sums = lapply(.SD, FUN = function(x) sum(x * bgwt, na.rm=TRUE))), .SDcols = countcols][1,]
+  # 1: 9,978,123
+  # but sum(outapi_3mile_100sites$pop[outapi_3mile_100sites$statename != 'PUERTO RICO' ])
+  # [1] 10,022,946
   
-  # COUNTS OVERALL
-  results_overall <- sites2bgs_overall[ , .(countcols = lapply(.SD, FUN = function(x) sum(x * bgwt, na.rm=TRUE))), .SDcols = countcols] 
   
-  # COUNTS BY SITE
-  results_bysite <- sites2bgs_bysite[ , .(countcols = lapply(.SD, FUN = function(x) sum(x * bgwt, na.rm=TRUE))), by = siteid, .SDcols = countcols] 
-  # or is it like this...? ***************************
-  # sites2bg[, lapply(.SD, countcols   :=     sum(blockwt * blockgroupstats[,  countcols], na.rm=T)), by = .(siteid), .SDcols = countcols]  
+  # COUNTS BY SITE  ####
+  results_bysite <- sites2bgs_plusblockgroupdate_bysite[ ,  lapply(.SD, FUN = function(x) round(sum(x * bgwt, na.rm=TRUE), 1) ), by = .(siteid), .SDcols = countcols ]
+  # results_bysite[1:100,1:8]
   
-  ######################################################
-  # CALCULATE POPULATION WEIGHTED MEANS FOR SOME VARIABLES ( ENVT, ... AND MAYBE ALL THE DEMOG TOO???)
-  ######################################################
+  ##################################################### #
+  # CALCULATE POPULATION WEIGHTED MEAN FOR SOME VARIABLES ( ENVT, EJ index. ####  
+  # ... AND MAYBE ALL THE DEMOG TOO???)
+  ##################################################### #
   
-  # POP wtd MEAN OVERALL
-  results_overall[ , .(popmeancols := lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE))), .SDcols = popmeancols  ]
-  # **********THIS NOW SHOULD HAVE ONE ROW ONLY? 
+  # POP wtd MEAN OVERALL ####
+  results_overall_popmeans <- sites2bgs_plusblockgroupdate_overall[ ,  lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE)), .SDcols = popmeancols ]
+  results_overall <- cbind(results_overall, results_overall_popmeans)
+  # cbind(sum = prettyNum(results_overall, big.mark = ','))
   
-  # POP wtd MEAN BY SITE
-  results_bysite[  , .(popmeancols := lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE))), by = siteid, .SDcols = popmeancols]
-  # or is it like this...?? ***************************
-  # sites2bg[,           lapply(.SD, popmeancols := sum(pop * blockwt * blockgroupstats[,popmeancols], na.rm=T) / sum(pop * blockwt, na.rm=T)), by = .(siteid), .SDcols = popmeancols]
-  # *******THIS NOW SHOULD HAVE ONE ROW PER BLOCKGROUP?
+  # POP wtd MEAN BY SITE ####
+  results_bysite_popmeans <- sites2bgs_plusblockgroupdate_bysite[ ,  lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE)), by = .(siteid), .SDcols = popmeancols ]
+  results_bysite <- merge(results_bysite, results_bysite_popmeans)
+  # (results_bysite)
   
-  ######################################################
-  # and/or if some variables have to be calculated using formulas, can do that using the list of formulas and this function:
-  ######################################################
   
-  #   CALCULATE INDICATORS USING FORMULAS, BASED ON THE ROLLED UP COUNTS
+  save.image('~/R/mypackages/EJAM/inst/doagg2 so far just before calculated vars made.rda')
+  
+  
+  ##################################################### #
+  # and/or if some variables have to be calculated using formulas, 
+  # can do that using the list of formulas and this function: ... 
+  ##################################################### #
+  
+  #   CALCULATE INDICATORS USING FORMULAS, BASED ON THE ROLLED UP COUNTS #### 
   # this was meant to handle multiple columns (formula for each new one) for many rows (and here in buffer results, one site is a row, not one blockgroup) 
   
-  myformulas = ejscreen::ejscreenformulas
+  # "nonmins <- nhwa"
+  # "mins <- pop - nhwa" 
+  results_overall[ , `:=`(
+    pctover64 = ifelse( pop==0, 0, over64 / pop) ,
+    pcthisp = ifelse(pop==0, 0, as.numeric(hisp ) / pop),
+    pctnhwa = ifelse(pop==0, 0, as.numeric(nhwa ) / pop),
+    pctnhba = ifelse(pop==0, 0, as.numeric(nhba ) / pop) ,
+    pctnhaiana = ifelse(pop==0, 0, as.numeric(nhaiana ) / pop),
+    pctnhaa = ifelse(pop==0, 0, as.numeric(nhaa ) / pop), 
+    pctnhnhpia = ifelse(pop==0, 0, as.numeric(nhnhpia ) / pop),
+    pctnhotheralone = ifelse(pop==0, 0, as.numeric(nhotheralone ) / pop), 
+    pctnhmulti = ifelse(pop==0, 0, as.numeric(nhmulti ) / pop),
+    pctmin = ifelse(pop==0, 0, as.numeric(mins ) / pop), 
+    pctlowinc = ifelse( povknownratio==0, 0, lowinc / povknownratio),                                                                                                                      
+    pctlths = ifelse(age25up==0, 0, as.numeric(lths ) / age25up), 
+    pctlingiso = ifelse( hhlds==0, 0, lingiso / hhlds), 
+    pctpre1960 = ifelse( builtunits==0, 0, pre1960 / builtunits),
+    pctunemployed = ifelse(unemployedbase==0, 0, as.numeric(unemployed) / unemployedbase)
+  ) ]
+  # cbind(sum = prettyNum(results_overall, big.mark = ','))
+  
+  results_bysite[ , `:=`(
+  pctover64 = ifelse( pop==0, 0, over64 / pop) ,
+  pcthisp = ifelse(pop==0, 0, as.numeric(hisp ) / pop),
+  pctnhwa = ifelse(pop==0, 0, as.numeric(nhwa ) / pop),
+  pctnhba = ifelse(pop==0, 0, as.numeric(nhba ) / pop) ,
+  pctnhaiana = ifelse(pop==0, 0, as.numeric(nhaiana ) / pop),
+  pctnhaa = ifelse(pop==0, 0, as.numeric(nhaa ) / pop), 
+  pctnhnhpia = ifelse(pop==0, 0, as.numeric(nhnhpia ) / pop),
+  pctnhotheralone = ifelse(pop==0, 0, as.numeric(nhotheralone ) / pop), 
+  pctnhmulti = ifelse(pop==0, 0, as.numeric(nhmulti ) / pop),
+  pctmin = ifelse(pop==0, 0, as.numeric(mins ) / pop), 
+  pctlowinc = ifelse( povknownratio==0, 0, lowinc / povknownratio),                                                                                                                      
+  pctlths = ifelse(age25up==0, 0, as.numeric(lths ) / age25up), 
+  pctlingiso = ifelse( hhlds==0, 0, lingiso / hhlds), 
+  pctpre1960 = ifelse( builtunits==0, 0, pre1960 / builtunits),
+  pctunemployed = ifelse(unemployedbase==0, 0, as.numeric(unemployed) / unemployedbase)
+  ) ]
+  # VSI.eo.US = sum(mins) / sum(pop)  +  sum(lowinc) / sum(povknownratio) ) / 2, 
+  # VNI.eo = VSI.eo * pop, 
+  # VSI.eo = (pctlowinc + pctmin) / 2, 
+  #  or is it treated as envt var and just pop mean?
+  
+  # to be replaced with data available to this package
+  # myformulas = ejscreen::ejscreenformulas
   
   # one row per buffer/site?  
-  results_bysite_formulas_done <- ejscreen::ejscreen.acs.calc(bg = results_bysite[ , calculatedcols], keep.old = 'all', keep.new = 'all', formulas = myformulas)
+  # results_bysite_formulas_done <- ejscreen::ejscreen.acs.calc(bg = results_bysite, keep.old = 'all', keep.new = 'all', formulas = myformulas)
   
   # just one row?
   
-  results_overall_formulas_done  <- ejscreen::ejscreen.acs.calc(bg = results_overall[ , calculatedcols], keep.old = 'all', keep.new = 'all', formulas = myformulas)
+  # results_overall_formulas_done  <- ejscreen::ejscreen.acs.calc(bg = results_overall, keep.old = 'all', keep.new = 'all', formulas = myformulas)
+
+
+  # cbind(prettyNum( (results_bysite[1,]),big.mark = ','))
+  # t(usastats[usastats$PCTILE == 'mean', ])
+   
   
-  ######################################################
-  # FIND PERCENTILES THOSE RAW SCORES REPRESENT 
+  save.image('~/R/mypackages/EJAM/inst/doagg2 so far just AFTER calculated vars made.rda')
+  
+  
+  ##################################################### #
+  # FIND PERCENTILES THOSE RAW SCORES REPRESENT  ####
   #  VIA  lookup tables of US/State  percentiles
-  ######################################################
+  ##################################################### #
+  
+
+  
+  # Use the dataset called EJAM::usastats as the lookup table for USA percentiles and mean. 
+  # but update/ fix it so it uses right variable names, etc., or replace with the one from ejscreen pkg
+  
+  
   
   # ejanalysis::lookup.pctile(results_bysite[, varsneedpctiles[i]], varname.in.lookup.table = varsneedpctiles[i], lookup = lookup.pctile.US) 
   # ejanalysis::lookup.pctile(c(1000, 3000), varname.in.lookup.table = 'traffic.score',
   #   lookup = lookupStates19, zone = 'NY')
+  
+  # lookup.pctile.US
 
   
-    
-  # lookup.pctile.US
   
-  # EJSCREENbatch code took weighted mean of data within each buffer (shape_ID) for these indicators:
+  # pctilevars <- c(ejscreen::names.e, ejscreen::names.d, ejscreen::names.d.subgroups, ejscreen::names.ej)
+  # pctile.cols <- data.frame(matrix(nrow = 2, ncol = length(pctilevars))); colnames(pctile.cols) <- pctilevars
+  # # for (myvar in pctilevars) {
+    # pctile.cols[ , myvar] <- EJAM::lookup.pctile.US(results_bysite[ , myvar], ..... 
+  # }
+  #  need to do state and region here too *****
+
+  
+  
+  warning('work in progress stops here')  # ############   code below is older 
+  
+  # RETURN THE RESULTS ####
+  
+  results <- list(results_overall = results_overall, results_bysite = results_bysite)
+  
+  
+  return(results)
+  
+  
+  ##################################################### #
+  # EJSCREENbatch code for comparison #### 
+  # took weighted mean of data within each buffer (shape_ID) for these indicators:
+  ##################################################### #
   # 
   # Extract key variables, take ***pop-weighted*** average
   # df.var.wm <-list_data %>%
@@ -371,14 +513,6 @@ doaggregate2 <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculate
   
   
   
-  
-  warning('work in progress stops here')  # ############   code below is older 
-  
-  
-  results <- list(results_overall = results_overall, results_bysite = results_bysite)
-  
-  
-  return(results)
   
   
   # # filter out any rows with missing values
