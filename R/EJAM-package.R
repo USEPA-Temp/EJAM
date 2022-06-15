@@ -28,7 +28,7 @@
 #'     (for average resident within specified distance of site or facility)
 #'      NOTE: FUNCTION IS BEING REWRITTEN to be generic to use any indicators,
 #'      and to use smaller data files, and be faster, etc.
-#'      doaggregate2() is that work in progress.
+#'       work in progress.
 #'
 #' * [getrelevantCensusBlocksviaQuadTree()]*  
 #'     Very fast method to buffer, identifying which blocks are 
@@ -119,7 +119,7 @@
 #'       INPUT IS  `sites2blocks`, 
 #'       OUTPUT IS results_overall, results_bysite, and maybe other summary stats  ####
 #'   
-#'   *[doaggregate2()]* <- function(sites2blocks) **
+#'   *[doaggregate()]* <- function(sites2blocks) **
 #'       #(in buffer and overall)
 #'     
 #'   **[blockdata::blockwts].rda**

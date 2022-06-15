@@ -30,7 +30,7 @@ within each buffer weighted using blockwts
 (for average resident within specified distance of site or facility)
 NOTE: FUNCTION IS BEING REWRITTEN to be generic to use any indicators,
 and to use smaller data files, and be faster, etc.
-doaggregate2() is that work in progress.
+work in progress.
 \item \code{\link[=getrelevantCensusBlocksviaQuadTree]{getrelevantCensusBlocksviaQuadTree()}}*
 Very fast method to buffer, identifying which blocks are
 within specified distance of site or facility
@@ -147,7 +147,7 @@ unless analysis is for residents within x miles of the edges of some shapes, lik
   OUTPUT IS results_overall, results_bysite, and maybe other summary stats  ####
 }
 
-\emph{\code{\link[=doaggregate2]{doaggregate2()}}} <- function(sites2blocks) **
+\emph{\code{\link[=doaggregate]{doaggregate()}}} <- function(sites2blocks) **
 #(in buffer and overall)
 
 \strong{\link[blockdata:blockwts]{blockdata::blockwts}.rda}

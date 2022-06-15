@@ -13,7 +13,7 @@ summarizeForFacilities <- function(sitepoints, cutoff, maxcutoff, uniqueonly, av
   
   blocks <- getrelevantCensusBlocksviaQuadTree(sitepoints, cutoff, maxcutoff, uniqueonly, avoidorphans, ...)
   cat('Aggreating results\n')
-  doaggregate(facilities, blocks)
-  
+  doaggregate(sitepoints , blocks)
+  # facilities
 }
   

@@ -194,7 +194,7 @@ shinyServer(function(input, output, session) {
 
   ####################################################################################################################### #
   # *** ID: FACILITY LIST IS USED FOR BUFFERING** #######
-  # imported facility list
+  # imported facility list  ...  uploaded_FRS_IDs
   ####################################################################################################################### #
   dataFacList <- reactive({
     inFile <- input$file_uploaded_FRS_IDs
@@ -216,7 +216,7 @@ shinyServer(function(input, output, session) {
   ####################################################################################### #
   dataFacListProcessed <- reactive({
     kimssampledata <- dataFacList()
-    kimssamplefacilities <- data.table::as.data.table(merge(x = kimssampledata, y = facilities, by.x='REGISTRY_ID', by.y='REGISTRY_ID', all.x=TRUE))
+    kimssamplefacilities <- data.table::as.data.table(merge(x = kimssampledata, y = frsdata::frs, by.x='REGISTRY_ID', by.y='REGISTRY_ID', all.x=TRUE))
     kimsunique <- data.table::as.data.table(unique(kimssamplefacilities[,.(REGISTRY_ID,LAT,LONG)]))
 
     rm(kimssampledata)
@@ -393,9 +393,8 @@ shinyServer(function(input, output, session) {
       cat('\nTRYING TO DOWNLOAD downloadData1 as ', paste0("ej-", Sys.Date(), "-",Sys.time(), ".txt",sep=''), '\n\n')
 
 
-      write.csv(datasetResults(), file)
+      write.csv(datasetResults()[ , 'results_bysite'], file)
       #must go back to version control and add this back in   ????????????
-
 
       userin=""
 
@@ -445,7 +444,7 @@ shinyServer(function(input, output, session) {
       cat(userin,  file=file)
 
       # write file of results ####
-      write.table(datasetResults(), file, append = T, sep=",")
+      write.table(datasetResults()[ , 'results_bysite'], file, append = T, sep=",")
 
       cat('\n\n Wrote to ', file)
 
