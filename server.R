@@ -5,6 +5,11 @@
 
 shinyServer(function(input, output, session) {
 
+  ## *** DOES localtree HAVE TO BE RECREATED EACH TIME dataLocationListProcessed REACTIVE UPDATES??
+  # SEEMS LIKE THAT WOULD BE EVERY TIME radius is updated, 
+  # but this is slow and only needs to happen once per session, right?
+  localtree <- SearchTrees::createTree(blockdata::quaddata, treeType = "quad", dataType = "point")
+  
   # warnings and text outputs re selected Facilities, Industry, or Locations ##########################################
   numUniverseSource <- function() {
     selInd=0
@@ -143,9 +148,8 @@ shinyServer(function(input, output, session) {
     if (is.null(in2File))
       return(NULL)
     isolate(read.table(file=in2File$datapath, sep=',', header=TRUE, quote='"'))
-    # does that need to be like the copy below and say data.table::as.data.table(read.table ???
-  }
-  )
+    
+  })
 
   output$inLocationList <- renderTable(
     {
@@ -160,35 +164,30 @@ shinyServer(function(input, output, session) {
   dataLocationListProcessed <- reactive({
     if(is.null(dataLocationList())) {return () }
     sitepoints <- data.table::copy(dataLocationList())
-    setDT(sitepoints, key = 'siteid')
+    setDT(sitepoints)#, key = 'siteid')
 
     cutoff = getCutoff() # radius (units?)
     maxcutoff = getMaxcutoff()  # reactive, max distance to search
     get_unique = setUnique()     # reactive, TRUE = stats are for dissolved single buffer to avoid doublecounting. FALSE = we want to count each person once for each site they are near.
     avoidorphans = doExpandradius() # Expand distance searched, when a facility has no census block centroid within selected buffer distance
 
-    ## *** DOES localtree HAVE TO BE RECREATED EACH TIME dataLocationListProcessed REACTIVE UPDATES??
-    # SEEMS LIKE THAT WOULD BE EVERY TIME radius is updated, 
-    # but it is slow and only needs to happen once per session, right?
-    localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
-    
+    # note this does require that blockquadtree be available as data
     system.time({
-      # note this does require that blockquadtree be available as data
-      res <- getrelevantCensusBlocksviaQuadTree(sitepoints =  sitepoints,
-      cutoff = radius,
-      maxcutoff = maxcutoff,
-      uniqueonly = uniqueonly,
-      avoidorphans = avoidorphans,
-      quadtree = localtree
+      sites2blocks <- EJAM::getrelevantCensusBlocksviaQuadTree(
+        sitepoints =  sitepoints,
+        cutoff = cutoff, # radius
+        maxcutoff = maxcutoff,
+        uniqueonly = uniqueonly,
+        avoidorphans = avoidorphans,
+        quadtree = localtree
       )
-    })
+    }) # end of timed function
     system.time({
-      dat <- doaggregate(sitepoints, res)
+      out <- doaggregate(sites2blocks = sites2blocks)
     })
-    return(dat)
+    return(out)
   })
   # End of functions used for the dataLocList option
-
 
 
 
@@ -218,23 +217,21 @@ shinyServer(function(input, output, session) {
     kimssampledata <- dataFacList()
     kimssamplefacilities <- data.table::as.data.table(merge(x = kimssampledata, y = frsdata::frs, by.x='REGISTRY_ID', by.y='REGISTRY_ID', all.x=TRUE))
     kimsunique <- data.table::as.data.table(unique(kimssamplefacilities[,.(REGISTRY_ID,LAT,LONG)]))
-
     rm(kimssampledata)
     rm(kimssamplefacilities)
-
     kimsunique$ID <- c(seq.int(nrow(kimsunique)))
     kimsunique <-as.data.table(unique(kimsunique[,.(ID,LAT,LONG)]))
 
-    cutoff=getCutoff()
-    maxcuttoff=getMaxcutoff()
-    get_unique=setUnique()
-    avoidorphans=doExpandradius()
+    
+    cutoff = getCutoff() # radius (units?)
+    maxcutoff = getMaxcutoff()  # reactive, max distance to search
+    get_unique = setUnique()     # reactive, TRUE = stats are for dissolved single buffer to avoid doublecounting. FALSE = we want to count each person once for each site they are near.
+    avoidorphans = doExpandradius() # Expand distance searched, when a facility has no census block centroid within selected buffer distance
+    
+    system.time(sites2blocks <- getrelevantCensusBlocksviaQuadTree(sitepoints=kimsunique,cutoff,maxcuttoff,get_unique,avoidorphans))
+    system.time(out <- doaggregate(sites2blocks))
 
-    system.time(res <- getrelevantCensusBlocksviaQuadTree(sitepoints=kimsunique,cutoff,maxcuttoff,get_unique,avoidorphans))
-
-    system.time(dat <- doaggregate(kimsunique, res))
-
-    return(dat)
+    return(out)
   })
   # End of functions used for the dataFacList option #######3
   ####################################################################################################################### #
@@ -340,23 +337,35 @@ shinyServer(function(input, output, session) {
 
       if (nrow(sub2)>0) {
 
-        system.time(res <- getrelevantCensusBlocksviaQuadTree(sitepoints=sub2,cutoff,maxcuttoff,get_unique,avoidorphans))
-
-        system.time(dat <- doaggregate(sub2,res))
-
-        return(dat)
+        # older code:
+        # system.time(res <- getrelevantCensusBlocksviaQuadTree(sitepoints=sub2,cutoff,maxcuttoff,get_unique,avoidorphans))
+        # system.time(dat <- doaggregate(sub2,res))
+        # return(dat)
+        
+        system.time({
+          sites2blocks <- EJAM::getrelevantCensusBlocksviaQuadTree(
+            sitepoints =  sitepoints,
+            cutoff = cutoff, # radius
+            maxcutoff = maxcutoff,
+            uniqueonly = uniqueonly,
+            avoidorphans = avoidorphans,
+            quadtree = localtree
+          )
+        }) 
+        system.time({out <- doaggregate(sites2blocks = sites2blocks)})
+        return(out)        
       }
       else {
         print("No matches were found")
-        dat <-data.table::as.data.table(setNames(data.frame(matrix(ncol = 1, nrow = 0)),paste0("No matches were found"#, c(1:1)
+        out <- data.table::as.data.table(setNames(data.frame(matrix(ncol = 1, nrow = 0)),paste0("No matches were found"#, c(1:1)
         )))
-        return(dat)
+        return(out)
       }
     }
     else {
       print("Please submit an industry to run this query")
-      dat <-data.table::as.data.table(setNames(data.frame(matrix(ncol = 1, nrow = 0)),paste0("Please submit an industry to run this query", c(1:1))))
-      return(dat)
+      out <- data.table::as.data.table(setNames(data.frame(matrix(ncol = 1, nrow = 0)),paste0("Please submit an industry to run this query", c(1:1))))
+      return(out)
     }
   }
 
@@ -385,17 +394,22 @@ shinyServer(function(input, output, session) {
   }
 
   # Download the Results #######
+
   output$downloadData1 <- downloadHandler(
     filename = function() {
-      paste0("ej-", Sys.Date(), "-",Sys.time(), ".txt",sep='')
+      paste0("ej-", Sys.Date(), "-",Sys.time(), ".csv",sep='')
     },
+    contentType = 'text/csv',
     content = function(file) {
       cat('\nTRYING TO DOWNLOAD downloadData1 as ', paste0("ej-", Sys.Date(), "-",Sys.time(), ".txt",sep=''), '\n\n')
-
-
-      write.csv(datasetResults()[ , 'results_bysite'], file)
+print(str(datasetResults()))
+      write.csv(datasetResults()$results_bysite, file, row.names = FALSE) # check this - why does it write here and again below??
+      write.csv(datasetResults()$results_overall, file, append = T, row.names = FALSE)
+      
+      # write.csv(datasetResults()[ , 'results_bysite'], file)
       #must go back to version control and add this back in   ????????????
-
+if (1 == 'have not fixed this code yet') {
+  
       userin=""
 
       selectNaics_in_Datasystem1=paste(input$selectNaics_in_Datasystem1,collapse=", ")
@@ -443,8 +457,10 @@ shinyServer(function(input, output, session) {
 
       cat(userin,  file=file)
 
-      # write file of results ####
-      write.table(datasetResults()[ , 'results_bysite'], file, append = T, sep=",")
+      # append tabular data to the file of results ?? #### 
+      write.table(datasetResults()$results_bysite, file, append = T, sep = ",")
+      # write.table(datasetResults()[ , 'results_bysite'], file, append = T, sep=",")
+}
 
       cat('\n\n Wrote to ', file)
 
@@ -464,6 +480,7 @@ shinyServer(function(input, output, session) {
       return(dataLocationListProcessed())
     }
     else if (length(myfile_uploaded_FRS_IDs()) > 1) {
+      stop('dataFacListProcessed reactive and myfile_uploaded_FRS_IDs not working currently')
       return(dataFacListProcessed())
     }
   }
