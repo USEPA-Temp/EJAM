@@ -1,3 +1,5 @@
+if (FALSE) {
+  
 #' clean up selected NAICS facilities by NAICS industrial sector code 
 #' 
 #'  NOTE:   A VERSION OF THIS IS WITHIN server.R 
@@ -28,7 +30,7 @@
 #' @param selectNaics_in_Datasystem1 was from shiny app input$selectNaics_in_Datasystem1
 #' @param selectNaics_and_Datasystem2  was from shiny app input$selectNaics_in_Datasystem1
 #'
-#' @export
+##################################  @export
 #'
 datasetNAICS <- function(selectIndustry1_byNAICS, selectIndustry2_by_selectInput, 
                          cutoff, maxcutoff=50, get_unique=FALSE, 
@@ -135,4 +137,5 @@ datasetNAICS <- function(selectIndustry1_byNAICS, selectIndustry2_by_selectInput
     dat <- data.table::as.data.table(setNames(data.frame(matrix(ncol = 1, nrow = 0)), paste0("Please submit an industry to run this query", c(1:1))))
     return(dat)
   }
+}
 }
