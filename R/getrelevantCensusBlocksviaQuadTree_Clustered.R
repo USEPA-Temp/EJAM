@@ -43,7 +43,9 @@ facilities <- facilities[!is.na(facilities$LAT) & !is.na(facilities$LONG), ]
     percpufacilities[[i]] <- subset(facilities, CPUAFFINITY==i)
   }
 
-  localtree <- SearchTrees::createTree(quaddata, treeType = "quad", dataType = "point")
+  # This should have been done in server.R 
+  # localtree <- SearchTrees::createTree(blockdata::quaddata, treeType = "quad", dataType = "point")
+  
   # parallel::makePSOCKcluster is an enhanced version of snow::makeSOCKcluster in package snow. It runs Rscript on the specified host(s) to set up a worker process which listens on a socket for expressions to evaluate, and returns the results (as serialized objects).
   cl <- parallel::makeCluster(CountCPU, outfile="")
   doSNOW::registerDoSNOW(cl)
