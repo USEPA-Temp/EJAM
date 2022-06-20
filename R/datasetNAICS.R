@@ -1,37 +1,37 @@
 if (FALSE) {
-  
-#' clean up selected NAICS facilities by NAICS industrial sector code 
-#' 
-#'  NOTE:   A VERSION OF THIS IS WITHIN server.R 
-#'  and this was work in progress to possibly move it to a separate function
-#'  but that would require passing all these tables as parameters 
-#'  or assuming they are in memory. 
-#' \preformatted{
-#'     To pass all the reactives as parameters, you would do this: 
-#'     
-#'  selectIndustry1_byNAICS=input$selectIndustry1_byNAICS, 
-#'  selectIndustry2_by_selectInput=input$selectIndustry2_by_selectInput,
-#'  cutoff=getCutoff(), 
-#'  maxcutoff=getMaxcutoff(), 
-#'  get_unique=TRUE, 
-#'  avoidorphans=TRUE,
-#'  doExpandradius=doExpandradius(), 
-#'  selectNaics_in_Datasystem1= input$selectNaics_in_Datasystem1, 
-#'  selectNaics_and_Datasystem2 =input$selectNaics_and_Datasystem2)
-#'  }
-#'  
-#' @param selectIndustry1_byNAICS reactive from shiny input$selectIndustry1_byNAICS
-#' @param selectIndustry2_by_selectInput reactive from shiny input$selectIndustry2_by_selectInput
-#' @param cutoff  getCutoff()
-#' @param maxcutoff  getMaxcutoff() 
-#' @param get_unique default is FALSE now but was TRUE, but likely to get rid of this?! 
-#' @param avoidorphans default TRUE
-#' @param doExpandradius obsolete?
-#' @param selectNaics_in_Datasystem1 was from shiny app input$selectNaics_in_Datasystem1
-#' @param selectNaics_and_Datasystem2  was from shiny app input$selectNaics_in_Datasystem1
-#'
+# 
+# clean up selected NAICS facilities by NAICS industrial sector code
+# 
+#  NOTE:   A VERSION OF THIS IS WITHIN server.R
+#  and this was work in progress to possibly move it to a separate function
+#  but that would require passing all these tables as parameters
+#  or assuming they are in memory.
+# \preformatted{
+#     To pass all the reactives as parameters, you would do this:
+# 
+#  selectIndustry1_byNAICS=input$selectIndustry1_byNAICS,
+#  selectIndustry2_by_selectInput=input$selectIndustry2_by_selectInput,
+#  cutoff=getCutoff(),
+#  maxcutoff=getMaxcutoff(),
+#  get_unique=TRUE,
+#  avoidorphans=TRUE,
+#  doExpandradius=doExpandradius(),
+#  selectNaics_in_Datasystem1= input$selectNaics_in_Datasystem1,
+#  selectNaics_and_Datasystem2 =input$selectNaics_and_Datasystem2)
+#  }
+# 
+# @param selectIndustry1_byNAICS reactive from shiny input$selectIndustry1_byNAICS
+# @param selectIndustry2_by_selectInput reactive from shiny input$selectIndustry2_by_selectInput
+# @param cutoff  getCutoff()
+# @param maxcutoff  getMaxcutoff()
+# @param get_unique default is FALSE now but was TRUE, but likely to get rid of this?!
+# @param avoidorphans default TRUE
+# @param doExpandradius obsolete?
+# @param selectNaics_in_Datasystem1 was from shiny app input$selectNaics_in_Datasystem1
+# @param selectNaics_and_Datasystem2  was from shiny app input$selectNaics_in_Datasystem1
+
 ##################################  @export
-#'
+
 datasetNAICS <- function(selectIndustry1_byNAICS, selectIndustry2_by_selectInput, 
                          cutoff, maxcutoff=50, get_unique=FALSE, 
                          avoidorphans=TRUE, doExpandradius=NULL,

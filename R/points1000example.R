@@ -2,5 +2,4 @@
 #' @docType data
 #' @title data.table of random points
 #'
-#'
 NULL

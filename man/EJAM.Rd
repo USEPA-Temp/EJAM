@@ -97,13 +97,15 @@ Interface lets user select NAICS from pulldown, or type in NAICS
 Interface returns \code{naics_selected}, a vector of one or more naics codes,
 converted to \code{sitepoints} by naics2latlon().
 
-\strong{\href{naics_selected}{naics2latlon()}} returns \code{sitepoints} data.table (note here, siteid is just 1:n)\preformatted{ Required **frsdata::frs_naics_2016.rdata** **to be updated** 
+\strong{\href{naics_selected}{naics2latlon()}} returns \code{sitepoints} data.table (note here, siteid is just 1:n)
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{ Required **frsdata::frs_naics_2016.rdata** **to be updated** 
  Need to update FRS data used here regularly, ideally frequently.
  The 2016 version was facdata.rdata renamed  frs_naics_2016.rdata 
  with columns PROGRAM, PROGRAM_ID, REGISTRY_ID, NAICS, LAT, LONG
  data.table needed to get lat lon by naics
  Initially from the 2016 version, one row per naics per registry id
-}
+}\if{html}{\out{</div>}}
 \itemize{
 \item frsdata::frs* is not really needed for EJAM... A data.table with lat/lon location and other information
 (The 2021 Facility Registry System version was 98 MB as .rdata, >1 million rows, EPA-regulated facilities)
@@ -114,8 +116,10 @@ Interface so user can upload FRS REGISTRY_ID csv file,
 Interface returns \code{frsids}, list of REGISTRY_ID values from FRS
 converted to \code{sitepoints} by frsid2latlon().
 
-\strong{\href{frsids}{frsid2latlon()}} returns \code{sitepoints} data.table\preformatted{    Requires **[frsdata::frsid2latlon].rdata** data.table with cols frsid, lat, lon 
-}
+\strong{\href{frsids}{frsid2latlon()}} returns \code{sitepoints} data.table
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{    Requires **[frsdata::frsid2latlon].rdata** data.table with cols frsid, lat, lon 
+}\if{html}{\out{</div>}}
 
 **3- BY LAT/LON POINT: **
 Interface so user can upload latitude longitude siteid (and optionally others like sitename),
@@ -143,9 +147,9 @@ unless analysis is for residents within x miles of the edges of some shapes, lik
 }
 
 \section{\strong{SUMMARIZING INDICATORS IN BUFFERS}}{
-\preformatted{  INPUT IS  `sites2blocks`, 
+\if{html}{\out{<div class="sourceCode">}}\preformatted{  INPUT IS  `sites2blocks`, 
   OUTPUT IS results_overall, results_bysite, and maybe other summary stats  ####
-}
+}\if{html}{\out{</div>}}
 
 \emph{\code{\link[=doaggregate]{doaggregate()}}} <- function(sites2blocks) **
 #(in buffer and overall)

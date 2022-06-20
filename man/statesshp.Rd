@@ -3,11 +3,7 @@
 \docType{data}
 \name{statesshp}
 \alias{statesshp}
-\title{Shape File with boundaries of US States
-
-Can be used to quickly check which States a set of points are located in.}
+\title{Shape File with boundaries of US States}
 \description{
-Shape File with boundaries of US States
-
 Can be used to quickly check which States a set of points are located in.
 }
