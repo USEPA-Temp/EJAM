@@ -16,9 +16,13 @@
 #'
 #'   requires the following as data lazy loaded for example from blockdata package
 #'
-#'    blockdata  data.table (was 335 MB as .rdata) with these columns: blockfips, bgfips, STUSAB, blockpop2010, bgpop2010, blockwt, 
+#'    blockdata  data.table (was 335 MB as .rdata) with these columns: 
+#'    blockfips, bgfips, STUSAB, blockpop2010, bgpop2010, blockwt, 
 #'    # INTPTLAT, INTPTLON, BLOCK_LAT_RAD, BLOCK_LONG_RAD  BLOCK_X   BLOCK_Y  BLOCK_Z ID GRID_X GRID_Y GRID_Z 
 #'    # old names: blockid, BLOCKGROUPFIPS, STUSAB, STATE, COUNTY, TRACT, BLKGRP, BLOCK, POP100, HU100, Census2010Totalpop
+#'    
+#'    NOTE EJScreen APIs provide (slow limited number per query) access to the block weights table they use, here: 
+#'    https://ejscreen.epa.gov/arcgis/rest/services/ejscreen/ejquery/MapServer/73 
 #'    
 #'    blockgroupstats - A data.table (such as EJSCREEN demographic and environmental data by blockgroup?)
 #'    statesshp   (a shapefile of state boundries to determine what state a point is in)
@@ -42,7 +46,7 @@
 #' @import blockdata
 #' @export
 #'
-doaggregate <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculatedcols=NULL, testing=FALSE, ...) {
+doaggregate <- function(sites2blocks, countcols=NULL, popmeancols=NULL, calculatedcols=NULL, testing=FALSE, ...) {
   
   
   # HARDCODED blockgroup dataset and variable names, FOR NOW:  ####
@@ -185,7 +189,7 @@ doaggregate <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculated
   # sites2bg <- blockwts[sites2blocks, .(siteid, bgfips, distance, bgwt = sum(blockwt, na.rm=TRUE)), on = 'blockid', by =.(siteid, bgfips)] 
   
   ## why do sum(blockwt) by bgfips  here AGAIN, if already did it above?
-  rm(blockwts) ; gc()  # drop 6m row block table to save RAM # does not seem to be loaded to do that??
+  # rm(blockwts) ; gc()  # drop 6m row block table to save RAM # does not seem to be loaded to do that??
   
   blockcount_by_site <- sites2blocks[, .(blockcount_near_site = .N), by=siteid] # new
   bgcount_by_site <- sites2blocks[, .(bgcount_near_site = length(unique(bgfips))), by=siteid] # new
@@ -403,6 +407,11 @@ doaggregate <- function(sites2blocks, countcols=NULL,popmeancols=NULL,calculated
     }
   }
  
+  # setdiff(varsneedpctiles, names(ejscreen::lookupUSA))
+  # [1] "ust"                 "pct.unemployed"      "pctnhwa"             "pcthisp"            
+  # [5] "pctnhba"             "pctnhaa"             "pctnhaiana"          "pctnhnhpia"         
+  # [9] "pctnhotheralone"     "pctnhmulti"          "EJ.DISPARITY.ust.eo"
+  
   warning('work in progress stops here')  # ############   code below is older 
   
   # RETURN THE RESULTS ####

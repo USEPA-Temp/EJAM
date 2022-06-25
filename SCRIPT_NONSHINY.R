@@ -1,23 +1,25 @@
 # script example of running proximity analysis without Shiny app
 # ****  presumes that other data are in global environment, ****
 # **** like blockgroupstats, quaddata, etc. ****
-if (1 ==0) {
-
+if (FALSE) {
+  
+  
+  
   # See details in help for ?EJAM
-
+  
   # and note that right now batch.summarizer::ejscreenapi() is in that package not here
-
+  
   # and see package census2020download for 2020 census data on blocks 
-
+  
   # and facilities_prep may be obsolete or should be done before save that as dataset and build a package.
-
-
+  
+  
   # set up parameters, functions ####
   # includes library(EJAM) which provides datasets like blockgroupstats, facilities, etc.
   library(blockdata) # for 2010 data. 
   library(EJAM)
   library(data.table)
-   data("blockwts")
+  data("blockwts")
   
   # SLOW ------------
   blockgroupstats <- ejscreen::bg21plus; blockgroupstats$bgfips <- blockgroupstats$FIPS
@@ -31,19 +33,19 @@ if (1 ==0) {
   # CountCPU <- 2
   CountCPU <- parallel::detectCores()
   indexgridsize <- 10  # This does not seem to be used ever - it is just used to create buffer_indexdistance which is not used.
-
+  
   # can specify random test points (sites) ######
   #sitepoints <- points100example %>% head(1)# data in this package
-
+  
   sitepoints <- data.table::copy(EJAM::points100example) # [1:5, ])
   # sitepoints <- data.table::copy(EJAM::points100example)   # NOTE the first point is far outside the continental US and returns no data using census 2010 blocks.
   sitepoints[ , siteid := .I] # .I JUST NUMBERS THE SITES
   data.table::setnames(sitepoints, 'LAT', 'lat')
   data.table::setnames(sitepoints, 'LONG', 'lon')
   data.table::setkey(sitepoints) #,  c('siteid', 'lat', 'lon'))
-
+  
   # specify radius for circular buffer and other key parameters ####
-
+  
   radius <- 1 # radius (miles)
   maxcutoff <- 31.07 # 50 km  # max distance to expand search to, if avoidorphans=TRUE
   avoidorphans <- TRUE  # Expand distance searched, when a facility has no census block centroid within selected buffer distance.
@@ -55,8 +57,6 @@ if (1 ==0) {
   # call function that finds nearby blocks  ####
   
   system.time({
-    # results_by_site <- summarizeForFacilities(
-    
     sites2blocks <- EJAM::getrelevantCensusBlocksviaQuadTree(
       sitepoints =  sitepoints,
       cutoff = radius,
@@ -68,8 +68,8 @@ if (1 ==0) {
   }) # end of timed function
   
   
-
-  head(sites2blocks)
+  
+  # head(sites2blocks)
   
   # > head(sites2blocks)
   #    blockid  distance siteid
@@ -79,8 +79,10 @@ if (1 ==0) {
   
   
   # save.image(file = 'saved image so far in testing.rda')
- 
+  
   out <- doaggregate(sites2blocks = sites2blocks)
+  
+  # DONE - can look at out$results_overall  and out$results_bysite
   
   
   
@@ -99,53 +101,59 @@ if (1 ==0) {
   # )
   
   
+  
+  #################################################################################
+  
 }
 
-  #################################################################################
-  #################################################################################
-  #################################################################################
-  #################################################################################
-  
-  stop('stopped here') 
-  
-  # from doaggregate , as a script to test:
-  
-  
-  
-  countcols <- c(
-    "pop", 'nonmins', "mins", 
-    "lowinc",   "povknownratio",   
-    "lths",     "age25up", 
-    "lingiso",  "hhlds", 
-    "under5", "over64",
-    "unemployed",   "unemployedbase", # new in 2022
-    'pre1960',  'builtunits',
-    "nhwa", "hisp", "nhba", "nhaa", "nhaiana", "nhnhpia", "nhotheralone", "nhmulti" # not in EJScreen 2.0 but will use here
-  )
-  calculatedcols <- c(
-    # "VSI.eo", 
-    "pctmin", "pctlowinc", "pctlths", "pctlingiso", "pctunder5", "pctover64", 'pctunemployed',
-    "pctnhwa", "pcthisp", "pctnhba", "pctnhaa", "pctnhaiana", "pctnhnhpia", "pctnhotheralone", "pctnhmulti", 
-    "flagged"
-    )
+#################################################################################
+#################################################################################
+#################################################################################
+#################################################################################
+
+
+
+
+stop('stopped here') 
+
+# from doaggregate , as a script to test:
+
+
+
+countcols <- c(
+  "pop", 'nonmins', "mins", 
+  "lowinc",   "povknownratio",   
+  "lths",     "age25up", 
+  "lingiso",  "hhlds", 
+  "under5", "over64",
+  "unemployed",   "unemployedbase", # new in 2022
+  'pre1960',  'builtunits',
+  "nhwa", "hisp", "nhba", "nhaa", "nhaiana", "nhnhpia", "nhotheralone", "nhmulti" # not in EJScreen 2.0 but will use here
+)
+calculatedcols <- c(
+  # "VSI.eo", 
+  "pctmin", "pctlowinc", "pctlths", "pctlingiso", "pctunder5", "pctover64", 'pctunemployed',
+  "pctnhwa", "pcthisp", "pctnhba", "pctnhaa", "pctnhaiana", "pctnhnhpia", "pctnhotheralone", "pctnhmulti", 
+  "flagged"
+)
 popmeancols <- c(
   #    *** should EJ Index percentiles be here too? do we use the popwtd mean of the state percentiles, but the lookedup US percentile of the popwtd mean raw EJ score??? ****** e.g.,  state.pctile.EJ.DISPARITY.dpm.eo
-    'VSI.eo',   # Demog.Index <- weighted.mean(Demog.Index, w = pop)
-    "pm", "o3", "cancer", "resp", "dpm", 
-    "pctpre1960", "traffic.score", 
-    "proximity.npl", "proximity.rmp", "proximity.tsdf", "proximity.npdes", 
-    "ust", 
-    "EJ.DISPARITY.pm.eo", "EJ.DISPARITY.o3.eo", "EJ.DISPARITY.cancer.eo", "EJ.DISPARITY.resp.eo", "EJ.DISPARITY.dpm.eo", 
-    "EJ.DISPARITY.pctpre1960.eo", "EJ.DISPARITY.traffic.score.eo", 
-    "EJ.DISPARITY.proximity.npl.eo", "EJ.DISPARITY.proximity.rmp.eo", "EJ.DISPARITY.proximity.tsdf.eo", "EJ.DISPARITY.proximity.npdes.eo", 
-    "EJ.DISPARITY.ust.eo"
-  )
+  'VSI.eo',   # Demog.Index <- weighted.mean(Demog.Index, w = pop)
+  "pm", "o3", "cancer", "resp", "dpm", 
+  "pctpre1960", "traffic.score", 
+  "proximity.npl", "proximity.rmp", "proximity.tsdf", "proximity.npdes", 
+  "ust", 
+  "EJ.DISPARITY.pm.eo", "EJ.DISPARITY.o3.eo", "EJ.DISPARITY.cancer.eo", "EJ.DISPARITY.resp.eo", "EJ.DISPARITY.dpm.eo", 
+  "EJ.DISPARITY.pctpre1960.eo", "EJ.DISPARITY.traffic.score.eo", 
+  "EJ.DISPARITY.proximity.npl.eo", "EJ.DISPARITY.proximity.rmp.eo", "EJ.DISPARITY.proximity.tsdf.eo", "EJ.DISPARITY.proximity.npdes.eo", 
+  "EJ.DISPARITY.ust.eo"
+)
 
 sites2blocks <- blockwts[sites2blocks, .(siteid,blockid,distance,blockwt,bgfips), on='blockid']
 sites2blocks[, sitecount_near_block := .N, by=blockid] # (must use the table with duplicate blocks, not unique only) 
 
-    data.table::setorder(sites2blocks, siteid, bgfips, blockid) # new
-    
+data.table::setorder(sites2blocks, siteid, bgfips, blockid) # new
+
 #table(sites2blocks$sitecount_near_block) 
 sites2blocks[, bg_fraction_in_buffer_bysite := sum(blockwt), by=c('bgfips', 'siteid')]
 
@@ -153,9 +161,9 @@ sites2blocks_overall <- unique(sites2blocks, by="blockid")
 sites2blocks_overall[, bg_fraction_in_buffer_overall := sum(blockwt), by=bgfips]  
 rm(blockwts) ; gc()  # drop 6m row block table to save RAM # does not seem to be loaded to do that??
 
-  blockcount_by_site <- sites2blocks[, .(blockcount_near_site = .N), by=siteid] # new
-  bgcount_by_site <- sites2blocks[, .(bgcount_near_site = length(unique(bgfips))), by=siteid] # new
-  count_of_blocks_near_multiple_sites <- (NROW(sites2blocks) - NROW(sites2blocks_overall)) # NEW fraction is over /NROW(sites2blocks_overall)
+blockcount_by_site <- sites2blocks[, .(blockcount_near_site = .N), by=siteid] # new
+bgcount_by_site <- sites2blocks[, .(bgcount_near_site = length(unique(bgfips))), by=siteid] # new
+count_of_blocks_near_multiple_sites <- (NROW(sites2blocks) - NROW(sites2blocks_overall)) # NEW fraction is over /NROW(sites2blocks_overall)
 
 sites2bgs_overall <- sites2blocks_overall[ , .(siteid, bgwt = sum(blockwt)), by=bgfips ]
 
@@ -176,9 +184,9 @@ results_overall <- cbind(results_overall, results_overall_popmeans)
 results_bysite_popmeans <- sites2bgs_plusblockgroupdate_bysite[ ,  lapply(.SD, FUN = function(x) weighted.mean(x, w = bgwt * pop, na.rm = TRUE)), by = .(siteid), .SDcols = popmeancols ]
 results_bysite <- merge(results_bysite, results_bysite_popmeans)
 
-    results_bysite <- merge(results_bysite, blockcount_by_site) # new
-    results_bysite <- merge(results_bysite, bgcount_by_site) # new
- 
+results_bysite <- merge(results_bysite, blockcount_by_site) # new
+results_bysite <- merge(results_bysite, bgcount_by_site) # new
+
 # hardcoded formulas for now
 results_overall[ , `:=`(
   pctover64 = ifelse(pop==0, 0, over64 / pop),

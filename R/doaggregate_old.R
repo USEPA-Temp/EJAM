@@ -28,15 +28,16 @@
 #'
 doaggregate_old <- function(facilities, facilityblocks){
   
+  # notes ####
   # ******* this should be rewritten to not be hardcoded for specific columns, indicators like pctlowinc   ****************
   
   # Also, as written, it assumed blockdata was in global environment already.
   # blockdata  for Census 2010 was approx 350 MB as a .rdata file !!
   
-  # filter out any rows with missing values
+  # filter out any rows with missing values ####
   facilities <- facilities[!is.na(facilities$LONG) & !is.na(facilities$LAT),]
   
-  ########### Get blockdata for the nearby blocks as listed in facilityblocks ###########
+  ########### Get pop (from blockdata) for nearby blocks (ie facilityblocks) ###########
   
   bdata <- data.table::as.data.table(
     blockdata[POP100 != 0 & Census2010Totalpop != 0,
@@ -55,9 +56,8 @@ doaggregate_old <- function(facilities, facilityblocks){
   data.table::setkey(extendedfacilityblocks, "BLOCKGROUPFIPS")
   data.table::setkey(blockgroupstats, "BLOCKGROUPFIPS")
   extendedfacilityblocks_ext <- merge(extendedfacilityblocks, blockgroupstats)
-  
 
-  ########### Create scoringweight = fraction of whole Blockgroup pop that is in a given block ###########
+  ########### Create scoringweight = fraction of whole bg pop that is in given block ###########
   
   # We want the fraction of total blockgroup pop to know how much weight to give each block in aggregating scores in a buffer
   # and this scoringweight is correctly calculated here as comparing apples to apples, namely it is the
@@ -76,9 +76,9 @@ doaggregate_old <- function(facilities, facilityblocks){
   
   #env$debug <- extendedfacilityblocks_ext
   
-  ########### Create locations lookup   ###########
+  ########### Create "locations" table, lookup (?) ###########
   
-  #through nearest block
+  # through nearest block (?) (not clear what these are)
   nearestlocationdata <- data.table::as.data.table(extendedfacilityblocks_ext[,.(blockid, distance, ID)])
   data.table::setkey(nearestlocationdata, "ID", "distance", "blockid")
   uniquelocations <- data.table::as.data.table(unique(nearestlocationdata, by = c("ID")))
@@ -86,46 +86,43 @@ doaggregate_old <- function(facilities, facilityblocks){
   uniquelocationdata <- merge(uniquelocations, extendedfacilityblocks_ext, by = c("ID", "blockid"))
   aux_locations <- data.table::as.data.table(uniquelocationdata[,.(ID, blockid, distance.x, BLOCKGROUPFIPS, STUSAB = STUSAB, STATE = statename, COUNTY, TRACT, BLKGRP, BLOCK, REGION)])
   
-  # through shapefile
+  # through shapefile (?)
   prime_locations <- merge_state_shapefiles(facilities, statesshp)
   prime_locations <- data.table::as.data.table(prime_locations@data)
   
-  #  get state abbreviations from stateregions (but that could be replaced by a function that returns )
+  #  merge in state abbreviations (from stateregions) #### 
+  # (but that could be replaced by a function)
   prime_locations <- merge(prime_locations, stateregions, by.x = "STATE", by.y = "STATENAME")
   prime_locations <- prime_locations[,.(ID, STATE, STUSAB = ST)]
   data.table::setkey(prime_locations, "STUSAB")
   data.table::setkey(stateregions, "ST")
   prime_locations <- merge(prime_locations, stateregions, all.x = TRUE, all.y = FALSE, by.x = "STUSAB", by.y = "ST")
-  
   prime_locations <- data.table::as.data.table(prime_locations[,.(ID, blockid = NA, distance.x = NA, BLOCKGROUPFIPS = NA, STUSAB, STATE, COUNTY = NA, TRACT = NA, BLKGRP = NA, BLOCK = NA, REGION)] )
-  
+  # handle if STUSAB not found (?) (but keep aux_locations?)
   incompletes <- data.table::as.data.table(prime_locations[is.na(STUSAB),.(ID)])
-  #just take those complete
   prime_locations <- prime_locations[!is.na(STUSAB),]
-  
   data.table::setkey(incompletes, "ID")
   data.table::setkey(aux_locations, "ID")
   aux_locations <- merge(incompletes, aux_locations, all.x = TRUE, all.y = FALSE)
   
   locations <- rbind(prime_locations, aux_locations)
   
-  # CALCULATE DEMOGRAPHIC AND OTHER INDICATORS ##################################################
+  # CALCULATE raw DEMOGRAPHIC AND OTHER INDICATORS ##################################################
   
-  #do preprocessing here, field ratios, etc, these may be needed in later steps
+  # do preprocessing here, field ratios, etc, these may be needed in later steps
   # ******* this should not be hardcoded for specific columns, indicators:   ****************
   pctlowinc <- sum_pctlowinc(extendedfacilityblocks_ext)
   pctlangugage <- sum_pctlanguage(extendedfacilityblocks_ext)
   
-  #do direct sums
+  # do direct sums
   env$direct_sums <- directsums(extendedfacilityblocks_ext)
   data.table::setkey(env$direct_sums, "ID")
   
-  #do pop weighted sums
+  # do pop weighted sums
   env$popweight_sums <- popweightedsums(extendedfacilityblocks_ext)
   data.table::setkey(env$popweight_sums, "ID")
-  ###################################################
-  
-  #merge
+
+  # merge
   result <- merge(env$direct_sums, env$popweight_sums)
   rm(direct_sums, envir = env)
   rm(popweight_sums, envir = env)
@@ -146,7 +143,7 @@ doaggregate_old <- function(facilities, facilityblocks){
   # ***********************
   
   
-  # CALCULATE EJ INDEXES ##################################################
+  # CALCULATE raw EJ INDEXES ##################################################
   
   #do post processing here REMEMBER NAMES HAVE POSSIBLY CHANGED
   
@@ -187,7 +184,7 @@ doaggregate_old <- function(facilities, facilityblocks){
   
   result <- merge(result, locations)
   
-  ###################################################
+  ################################################## #
   
   # do percentile lookups
   
