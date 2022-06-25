@@ -90,7 +90,7 @@ lookup.pctile.US <- function(data, thisregion = 'USA', geolevel = 'usa', fields2
   #   c(rep(1, times = 11)) 
   # )
   
-  fields_outputnames <- paste('pctile.',lookupfields)  
+  fields_outputnames <- paste0('pctile.',lookupfields)  
   #   # c("N_D_INDEX_PER","N_E_NPDES_PER","N_E_TSDF_PER","N_E_RMP_PER",
   #   "N_E_NPL_PER","N_E_LEAD_PER","N_E_TRAFFIC_PER","N_E_RESP_PER",
   #   #"N_E_NEURO_PER",
@@ -109,7 +109,7 @@ lookup.pctile.US <- function(data, thisregion = 'USA', geolevel = 'usa', fields2
   #   )
   # )
   
-  fields_outputnames_means <- paste('avg.',lookupfields) 
+  fields_outputnames_means <- paste0('us.avg.',lookupfields) 
   #   c("N_D_INDEX","N_E_NPDES","N_E_TSDF","N_E_RMP",
   #     "N_E_NPL","N_E_LEAD","N_E_TRAFFIC","N_E_RESP",
   #     #"N_E_NEURO",
@@ -122,7 +122,7 @@ lookup.pctile.US <- function(data, thisregion = 'USA', geolevel = 'usa', fields2
   
   fields_outputnames_means <- c(
     fields_outputnames_means,
-    paste(geolevel, 'noejmean', 1:11, sep = '')
+    paste0(geolevel, 'noejmean', 1:11)
   )
   
   # if (geolevel == 'region') {
