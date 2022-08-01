@@ -2,7 +2,7 @@
 % Please edit documentation in R/lookup.pctile.Region.R
 \name{lookup.pctile.Region}
 \alias{lookup.pctile.Region}
-\title{look up table to find percentile that a raw score is at within EPA Region}
+\title{old code to create a look up table to find percentile that a raw score is at  within EPA Region}
 \usage{
 lookup.pctile.Region(data, thisregion, ...)
 }
@@ -17,7 +17,7 @@ lookup.pctile.Region(data, thisregion, ...)
 data.table of 100 percentiles and mean (in rows) for each indicator (in columns)
 }
 \description{
-look up table to find percentile that a raw score is at within EPA Region
+old code to create a look up table to find percentile that a raw score is at  within EPA Region
 }
 \details{
 CURRENTLY HARD CODED TO USE THESE SPECIFIC FIELDS - NEEDS TO BE MADE GENERIC.

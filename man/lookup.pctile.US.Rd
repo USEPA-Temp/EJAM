@@ -2,7 +2,7 @@
 % Please edit documentation in R/lookup.pctile.US.R
 \name{lookup.pctile.US}
 \alias{lookup.pctile.US}
-\title{look up in a table to find percentile that a raw score is at within USA}
+\title{old code to create a look up table to find percentile that a raw score is at within USA}
 \usage{
 lookup.pctile.US(
   data,
@@ -36,7 +36,7 @@ lookup.pctile.US(
 data.table of 100 percentiles and mean (in rows) for each indicator (in columns)
 }
 \description{
-Still needs to have in global envt statestats, regionstats, or usastats depending on geolevel -
+needs to have in global envt statestats, regionstats, or usastats depending on geolevel -
   Can recode to make those data() in this package.
 }
 \details{

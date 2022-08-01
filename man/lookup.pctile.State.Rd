@@ -2,7 +2,7 @@
 % Please edit documentation in R/lookup.pctile.State.R
 \name{lookup.pctile.State}
 \alias{lookup.pctile.State}
-\title{look up table to find percentile that a raw score is at within given US State}
+\title{old code to create a look up table to find percentile that a raw score is at within given US State}
 \usage{
 lookup.pctile.State(data, thisregion, ...)
 }
@@ -17,7 +17,7 @@ lookup.pctile.State(data, thisregion, ...)
 data.table of 100 percentiles and mean (in rows) for each indicator (in columns)
 }
 \description{
-look up table to find percentile that a raw score is at within given US State
+old code to create a look up table to find percentile that a raw score is at within given US State
 }
 \details{
 CURRENTLY HARD CODED TO USE THESE SPECIFIC FIELDS - NEEDS TO BE MADE GENERIC.

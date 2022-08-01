@@ -1,6 +1,6 @@
-#' look up in a table to find percentile that a raw score is at within USA
+#' old code to create a look up table to find percentile that a raw score is at within USA
 #'
-#'   Still needs to have in global envt statestats, regionstats, or usastats depending on geolevel -
+#'     needs to have in global envt statestats, regionstats, or usastats depending on geolevel -
 #'   Can recode to make those data() in this package.
 #'
 #' @param data indicators data.table?

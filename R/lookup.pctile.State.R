@@ -1,4 +1,4 @@
-#' look up table to find percentile that a raw score is at within given US State
+#'  old code to create a look up table to find percentile that a raw score is at within given US State
 #'
 #' @details CURRENTLY HARD CODED TO USE THESE SPECIFIC FIELDS - NEEDS TO BE MADE GENERIC.
 #'   This should be about the same as ejanalysis::lookup.pctile()

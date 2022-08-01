@@ -11,9 +11,9 @@
 #'   EJScreen 2.0 was released 2/18/2022 (raw data download avail 2/22/2022).
 #'   
 #'   NOTE: It also has the race/ethnic subgroups that add up to minority or people of color, 
-#'   while EJSCREEN as of Feb. 2022 version 2.0 did not have those variables for standard reports.
+#'   while EJSCREEN as of July 2022 (version 2.0) did not have those variables for standard reports.
 #'   
-#'   **** PUERTO RICO IS NOT INCLUDED IN THE VERSION HERE AS OF LATE APRIL 2022.
+#'   **** PUERTO RICO IS NOT INCLUDED IN THE VERSION HERE AS OF JULY 2022.
 #'   
 #'   Those demographic variables were not yet calculated for Puerto Rico, so 
 #'   US totals would include PR for pop but not for hisp, for example.

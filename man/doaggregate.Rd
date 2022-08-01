@@ -37,9 +37,13 @@ This updated 2022 code takes a set of facilities and the set of blocks that are 
 
   requires the following as data lazy loaded for example from blockdata package
 
-   blockdata  data.table (was 335 MB as .rdata) with these columns: blockfips, bgfips, STUSAB, blockpop2010, bgpop2010, blockwt, 
+   blockdata  data.table (was 335 MB as .rdata) with these columns: 
+   blockfips, bgfips, STUSAB, blockpop2010, bgpop2010, blockwt, 
    # INTPTLAT, INTPTLON, BLOCK_LAT_RAD, BLOCK_LONG_RAD  BLOCK_X   BLOCK_Y  BLOCK_Z ID GRID_X GRID_Y GRID_Z 
    # old names: blockid, BLOCKGROUPFIPS, STUSAB, STATE, COUNTY, TRACT, BLKGRP, BLOCK, POP100, HU100, Census2010Totalpop
+   
+   NOTE EJScreen APIs provide (slow limited number per query) access to the block weights table they use, here: 
+   https://ejscreen.epa.gov/arcgis/rest/services/ejscreen/ejquery/MapServer/73 
    
    blockgroupstats - A data.table (such as EJSCREEN demographic and environmental data by blockgroup?)
    statesshp   (a shapefile of state boundries to determine what state a point is in)
